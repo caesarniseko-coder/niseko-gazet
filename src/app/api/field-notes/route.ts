@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth/rbac";
 import { createFieldNote, listFieldNotes } from "@/lib/services/field-note-service";
 import { createFieldNoteSchema } from "@/lib/validators/field-note";

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 /**
  * These tests verify the publishStory business logic by mocking the database.
@@ -6,24 +6,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
  */
 
 // Mock drizzle db module
-const mockSelect = vi.fn();
-const mockInsert = vi.fn();
-const mockUpdate = vi.fn();
-const mockDelete = vi.fn();
-const mockFrom = vi.fn();
-const mockWhere = vi.fn();
-const mockLimit = vi.fn();
-const mockValues = vi.fn();
-const mockSet = vi.fn();
-const mockReturning = vi.fn();
-const mockOrderBy = vi.fn();
-const mock$dynamic = vi.fn();
-
 vi.mock("@/lib/db", () => ({
   db: {
     select: () => ({
-      from: (table: any) => ({
-        where: (...args: any[]) => ({
+      from: (_table: unknown) => ({
+        where: (..._args: unknown[]) => ({
           limit: () => Promise.resolve([]),
           orderBy: () => Promise.resolve([]),
         }),
@@ -196,9 +183,9 @@ describe("Risk Flag Acknowledgement Logic", () => {
   });
 
   it("passes with empty risk flags", () => {
-    const riskFlags: any[] = [];
+    const riskFlags: { type: string; description: string; severity: string }[] = [];
     const unacknowledged = riskFlags
-      .map((f: any) => f.type)
+      .map((f) => f.type)
       .filter(() => false);
 
     expect(unacknowledged).toHaveLength(0);

@@ -6,10 +6,22 @@ export const metadata: Metadata = {
   title: "Niseko Gazet | Local News from the Powder Capital",
   description:
     "Independent journalism from Niseko, Japan. Breaking stories, deep investigations, and community voices from the heart of Hokkaido.",
+  metadataBase: new URL(
+    process.env.NEXTAUTH_URL ?? "https://niseko-gazet.vercel.app"
+  ),
   openGraph: {
     title: "Niseko Gazet",
-    description: "Independent journalism from Niseko, Japan",
+    description:
+      "Independent journalism from Niseko, Japan. Breaking stories and community voices from Hokkaido.",
     type: "website",
+    siteName: "Niseko Gazet",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Niseko Gazet",
+    description:
+      "Independent journalism from Niseko, Japan. Breaking stories and community voices from Hokkaido.",
   },
 };
 

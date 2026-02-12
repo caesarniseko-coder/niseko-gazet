@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
+import Image from "next/image";
 import type { FeedItem } from "@/hooks/use-feed";
 import { FeedVideoPlayer } from "./feed-video-player";
 import { FeedGatedOverlay } from "./feed-gated-overlay";
@@ -18,7 +19,6 @@ export function FeedCard({ item, index, isSubscribed = false }: FeedCardProps) {
 
   const videoBlock = item.contentBlocks.find((b) => b.type === "video");
   const imageBlock = item.contentBlocks.find((b) => b.type === "image");
-  const hasMedia = !!videoBlock || !!imageBlock;
   const isGated = item.isGated && !isSubscribed;
 
   return (
@@ -29,10 +29,11 @@ export function FeedCard({ item, index, isSubscribed = false }: FeedCardProps) {
           <FeedVideoPlayer src={videoBlock.content} />
         ) : imageBlock ? (
           <div className="absolute inset-0">
-            <img
+            <Image
               src={imageBlock.content}
               alt=""
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
             />
           </div>
         ) : (

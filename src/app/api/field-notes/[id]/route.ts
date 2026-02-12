@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth/rbac";
 import {
   getFieldNote,
@@ -8,7 +8,7 @@ import {
 import { updateFieldNoteSchema } from "@/lib/validators/field-note";
 import { createAuditEntry, extractRequestMeta } from "@/lib/utils/audit-log";
 
-export const GET = withAuth(async (req, { params, session }) => {
+export const GET = withAuth(async (req, { params, session: _session }) => {
   const { id } = await params;
   const note = await getFieldNote(id);
 

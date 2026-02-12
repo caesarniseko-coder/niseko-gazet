@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth/rbac";
 
 const CIZER_URL = process.env.CIZER_URL ?? "http://localhost:8000";

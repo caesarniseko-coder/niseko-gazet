@@ -3,7 +3,6 @@ import {
   stories,
   storyVersions,
   approvalRecords,
-  deliveryLogs,
 } from "@/lib/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { generateVersionHash } from "@/lib/utils/version-hash";
@@ -50,7 +49,7 @@ export async function listStories(filters?: {
   let query = db.select().from(stories).$dynamic();
 
   if (filters?.status) {
-    query = query.where(eq(stories.status, filters.status as any));
+    query = query.where(eq(stories.status, filters.status as "draft" | "in_review" | "approved" | "published" | "corrected" | "retracted"));
   }
   if (filters?.authorId) {
     query = query.where(eq(stories.authorId, filters.authorId));
@@ -220,7 +219,7 @@ export type PublishError =
   | { type: "unacknowledged_risk_flags"; flags: string[] };
 
 export type PublishResult =
-  | { success: true; story: any }
+  | { success: true; story: typeof stories.$inferSelect }
   | { success: false; error: PublishError };
 
 export async function publishStory(

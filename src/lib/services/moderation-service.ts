@@ -7,7 +7,7 @@ export async function listModerationItems(status?: string) {
     return db
       .select()
       .from(moderationQueue)
-      .where(eq(moderationQueue.status, status as any))
+      .where(eq(moderationQueue.status, status as "pending" | "approved" | "rejected" | "escalated"))
       .orderBy(desc(moderationQueue.createdAt));
   }
   return db

@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import { useCallback, useRef } from "react";
+import Image from "next/image";
 import type { FeedItem } from "@/hooks/use-feed";
 
 type FeedArticleExpandProps = {
@@ -19,17 +20,13 @@ export function FeedArticleExpand({
   const sheetRef = useRef<HTMLDivElement>(null);
 
   const handleDragEnd = useCallback(
-    (_: any, info: { velocity: { y: number }; offset: { y: number } }) => {
+    (_: unknown, info: { velocity: { y: number }; offset: { y: number } }) => {
       if (info.velocity.y > 300 || info.offset.y > 150) {
         onClose();
       }
     },
     [onClose]
   );
-
-  const textBlocks = item.contentBlocks.filter((b) => b.type === "text");
-  const imageBlocks = item.contentBlocks.filter((b) => b.type === "image");
-  const quoteBlocks = item.contentBlocks.filter((b) => b.type === "quote");
 
   return (
     <AnimatePresence>
@@ -139,11 +136,12 @@ export function FeedArticleExpand({
                       case "image":
                         return (
                           <figure key={i} className="my-8 -mx-6">
-                            <div className="aspect-video bg-slate/30 rounded-none overflow-hidden">
-                              <img
+                            <div className="aspect-video bg-slate/30 rounded-none overflow-hidden relative">
+                              <Image
                                 src={block.content}
                                 alt={String(block.metadata?.alt ?? "")}
-                                className="w-full h-full object-cover"
+                                fill
+                                className="object-cover"
                               />
                             </div>
                             {block.metadata?.caption != null && (

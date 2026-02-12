@@ -68,15 +68,15 @@ export default function LoginPage() {
           }}
         />
 
-        {/* Stars */}
+        {/* Stars - positions determined by index for render purity */}
         {Array.from({ length: 30 }).map((_, i) => (
           <div
             key={i}
             className="absolute w-[1px] h-[1px] bg-snow/40 rounded-full"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 50}%`,
-              animationDelay: `${Math.random() * 3}s`,
+              left: `${((i * 37 + 13) % 100)}%`,
+              top: `${((i * 23 + 7) % 50)}%`,
+              animationDelay: `${(i * 0.1) % 3}s`,
             }}
           />
         ))}

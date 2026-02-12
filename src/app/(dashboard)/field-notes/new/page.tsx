@@ -4,11 +4,20 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 
+interface CizerResult {
+  error?: string;
+  suggested_headline?: string;
+  suggested_summary?: string;
+  content_blocks?: { type: string; content: string }[];
+  edit_suggestions?: string[];
+  risk_flags?: { type: string; description: string; severity: string }[];
+}
+
 export default function NewFieldNotePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [cizerLoading, setCizerLoading] = useState(false);
-  const [cizerResult, setCizerResult] = useState<any>(null);
+  const [cizerResult, setCizerResult] = useState<CizerResult | null>(null);
   const [form, setForm] = useState({
     who: "",
     what: "",
@@ -275,15 +284,15 @@ export default function NewFieldNotePage() {
                     </div>
                   )}
 
-                  {cizerResult.content_blocks?.length > 0 && (
+                  {(cizerResult.content_blocks?.length ?? 0) > 0 && (
                     <div>
                       <p className="text-ice/40 text-[10px] uppercase tracking-wider mb-1">
-                        Content Blocks ({cizerResult.content_blocks.length})
+                        Content Blocks ({cizerResult.content_blocks!.length})
                       </p>
                       <div className="space-y-2">
-                        {cizerResult.content_blocks
+                        {cizerResult.content_blocks!
                           .slice(0, 3)
-                          .map((block: any, i: number) => (
+                          .map((block: Record<string, string>, i: number) => (
                             <div
                               key={i}
                               className="bg-white/5 rounded-lg px-3 py-2"
@@ -300,13 +309,13 @@ export default function NewFieldNotePage() {
                     </div>
                   )}
 
-                  {cizerResult.edit_suggestions?.length > 0 && (
+                  {(cizerResult.edit_suggestions?.length ?? 0) > 0 && (
                     <div>
                       <p className="text-ice/40 text-[10px] uppercase tracking-wider mb-1">
                         Suggestions
                       </p>
                       <ul className="space-y-1">
-                        {cizerResult.edit_suggestions.map(
+                        {cizerResult.edit_suggestions!.map(
                           (s: string, i: number) => (
                             <li
                               key={i}

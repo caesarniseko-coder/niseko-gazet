@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useCallback, useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useFeed } from "@/hooks/use-feed";
 import { FeedCard } from "./feed-card";
 import { FeedFilters } from "./feed-filters";
@@ -117,11 +116,11 @@ function SnowParticles() {
           key={i}
           className="snowflake"
           style={{
-            left: `${Math.random() * 100}%`,
-            animationDuration: `${8 + Math.random() * 12}s`,
-            animationDelay: `${Math.random() * 10}s`,
-            width: `${1 + Math.random() * 2}px`,
-            height: `${1 + Math.random() * 2}px`,
+            left: `${((i * 41 + 17) % 100)}%`,
+            animationDuration: `${8 + ((i * 7 + 3) % 12)}s`,
+            animationDelay: `${((i * 13 + 5) % 10)}s`,
+            width: `${1 + ((i * 3 + 1) % 3)}px`,
+            height: `${1 + ((i * 3 + 1) % 3)}px`,
           }}
         />
       ))}

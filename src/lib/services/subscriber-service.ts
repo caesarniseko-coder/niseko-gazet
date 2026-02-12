@@ -2,7 +2,6 @@ import { db } from "@/lib/db";
 import {
   subscriptions,
   userPreferences,
-  users,
 } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import type { UpdatePreferencesInput, CreateSubscriptionInput } from "@/lib/validators/subscriber";

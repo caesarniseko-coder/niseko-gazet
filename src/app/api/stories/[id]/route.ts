@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth/rbac";
 import { getStory, updateStory } from "@/lib/services/story-service";
 import { updateStorySchema } from "@/lib/validators/story";
 import { createAuditEntry, extractRequestMeta } from "@/lib/utils/audit-log";
 
-export const GET = withAuth(async (req, { params, session }) => {
+export const GET = withAuth(async (req, { params, session: _session }) => {
   const { id } = await params;
   const story = await getStory(id);
 

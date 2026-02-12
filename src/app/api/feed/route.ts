@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { stories, storyVersions } from "@/lib/db/schema";
-import { eq, and, desc, lt, not, sql, inArray } from "drizzle-orm";
+import { eq, and, desc, lt, inArray } from "drizzle-orm";
 
 const PAGE_SIZE = 10;
 
@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
     .map((s) => s.currentVersionHash)
     .filter(Boolean) as string[];
 
-  let versionMap: Record<string, any> = {};
+  let versionMap: Record<string, unknown> = {};
   if (versionHashes.length > 0) {
     const versions = await db
       .select({
