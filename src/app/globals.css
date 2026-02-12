@@ -1,26 +1,158 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap');
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --navy: #0a1628;
+  --navy-light: #111d33;
+  --snow: #f0f4f8;
+  --powder: #7eb8da;
+  --ice: #c4dfe6;
+  --slate: #2d3748;
+  --aurora: #38b2ac;
+  --sunset: #ed8936;
+  --frost: rgba(192, 219, 230, 0.08);
+  --frost-border: rgba(192, 219, 230, 0.12);
+  --glass: rgba(10, 22, 40, 0.75);
+
+  --background: var(--navy);
+  --foreground: var(--snow);
+
+  --font-display: 'Cormorant Garamond', 'Georgia', serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-navy: var(--navy);
+  --color-navy-light: var(--navy-light);
+  --color-snow: var(--snow);
+  --color-powder: var(--powder);
+  --color-ice: var(--ice);
+  --color-slate: var(--slate);
+  --color-aurora: var(--aurora);
+  --color-sunset: var(--sunset);
+  --color-frost: var(--frost);
+  --color-frost-border: var(--frost-border);
+  --color-glass: var(--glass);
+  --font-sans: var(--font-body);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(126, 184, 218, 0.3) transparent;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--navy);
+  color: var(--snow);
+  font-family: var(--font-body);
+  overflow: hidden;
+}
+
+/* Scroll-snap feed container */
+.feed-scroll {
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  height: 100dvh;
+  -webkit-overflow-scrolling: touch;
+}
+
+.feed-scroll::-webkit-scrollbar {
+  width: 2px;
+}
+
+.feed-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.feed-scroll::-webkit-scrollbar-thumb {
+  background: rgba(126, 184, 218, 0.3);
+  border-radius: 1px;
+}
+
+.feed-card {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  height: 100dvh;
+  position: relative;
+}
+
+/* Frosted glass effect */
+.glass-panel {
+  background: rgba(10, 22, 40, 0.65);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid rgba(192, 219, 230, 0.1);
+}
+
+/* Noise texture overlay */
+.noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Mountain gradient overlays */
+.mountain-gradient {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(10, 22, 40, 0.4) 65%,
+    rgba(10, 22, 40, 0.85) 85%,
+    var(--navy) 100%
+  );
+}
+
+/* Filter chip scrollbar hide */
+.chips-scroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.chips-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Shimmer for loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(126, 184, 218, 0.05) 25%,
+    rgba(126, 184, 218, 0.1) 50%,
+    rgba(126, 184, 218, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Snowfall particles */
+@keyframes snowfall {
+  0% { transform: translateY(-10vh) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(110vh) translateX(20px); opacity: 0; }
+}
+
+.snowflake {
+  position: fixed;
+  width: 2px;
+  height: 2px;
+  background: rgba(240, 244, 248, 0.4);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 50;
+  animation: snowfall linear infinite;
 }
