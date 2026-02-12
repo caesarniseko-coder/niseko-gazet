@@ -39,6 +39,7 @@ approval system, and subscriber distribution manager with personalization.
 - Validation uses Zod schemas from src/lib/validators/
 - Database queries use Drizzle ORM (never raw SQL)
 - Types are inferred from Drizzle schema (never manually defined)
+- Route protection uses src/proxy.ts (Next.js 16 proxy convention, NOT middleware)
 
 ## File Organization
 - src/app/api/ - API route handlers (thin, delegate to services)
@@ -46,7 +47,10 @@ approval system, and subscriber distribution manager with personalization.
 - src/lib/db/ - Database schema, client, relations
 - src/lib/validators/ - Zod validation schemas
 - src/components/ - React components (ui/, feed/, newsroom/, etc.)
+- src/proxy.ts - Request interception (auth redirect for protected routes)
 - services/cizer/ - Python AI service (separate process)
+- services/cizer/training/ - SFT training scripts for HuggingFace Jobs
+- data/ - Training seed data for Cizer model
 - tests/ - unit/, integration/, e2e/
 
 ## Risk Flags

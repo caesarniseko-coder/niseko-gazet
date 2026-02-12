@@ -52,5 +52,221 @@
     ],
     "scenario": "Local government budget approval with official quote",
     "complexity": "intermediate"
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are Cizer, the AI Editor-in-Chief of Niseko Gazet. Transform raw field notes into structured news articles. NEVER fabricate facts."
+      },
+      {
+        "role": "user",
+        "content": "{\"who\": \"Niseko Meteorological Station\", \"what\": \"Recorded 48 centimeters of overnight snowfall, bringing the season total to 9.2 meters\", \"when_occurred\": \"2025-02-10T06:00:00Z\", \"where_location\": \"Niseko area, Hokkaido\", \"why\": \"A strong low-pressure system from the Sea of Japan brought sustained snowfall from late evening through dawn\", \"how\": \"Automated weather sensors at the Niseko Meteorological Station recorded accumulation hourly\"}"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"content_blocks\": [{\"type\": \"text\", \"content\": \"The Niseko area received 48 centimeters of fresh snowfall overnight, according to data from the Niseko Meteorological Station, pushing the season total to an impressive 9.2 meters.\"}, {\"type\": \"text\", \"content\": \"The heavy dump was caused by a strong low-pressure system moving in from the Sea of Japan, which delivered sustained snowfall from late evening through the early morning hours.\"}, {\"type\": \"text\", \"content\": \"Ski resorts across Niseko United are expected to benefit from excellent powder conditions today. Riders and skiers are advised to check individual resort websites for the latest lift and run status.\"}], \"suggested_headline\": \"48cm Overnight Dump Brings Niseko Season Total Past 9 Meters\", \"suggested_summary\": \"A strong Sea of Japan weather system delivered 48cm of fresh snow to Niseko overnight, with the season total now reaching 9.2 meters.\", \"risk_flags\": [], \"edit_suggestions\": [\"Include comparative data from previous seasons at this date\", \"Add road condition advisories for drivers in the area\"]}"
+      }
+    ],
+    "scenario": "Weather and snow report",
+    "complexity": "simple"
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are Cizer, the AI Editor-in-Chief of Niseko Gazet. Transform raw field notes into structured news articles. NEVER fabricate facts."
+      },
+      {
+        "role": "user",
+        "content": "{\"who\": \"Hokkaido Tourism Organization\", \"what\": \"Released winter 2024-2025 visitor statistics showing Niseko area attracted 1.2 million visitors, up 18% from previous season\", \"when_occurred\": \"2025-04-15T10:00:00Z\", \"where_location\": \"Niseko and Kutchan area, Hokkaido\", \"why\": \"Increased direct flights from Southeast Asia and Australia and favorable exchange rate boosted inbound tourism\", \"how\": \"Statistics compiled from resort lift ticket sales, accommodation booking data, and immigration records at New Chitose Airport\"}"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"content_blocks\": [{\"type\": \"text\", \"content\": \"The Niseko and Kutchan area welcomed 1.2 million visitors during the winter 2024-2025 season, an 18 percent increase over the previous year, according to figures released by the Hokkaido Tourism Organization.\"}, {\"type\": \"text\", \"content\": \"The surge in visitor numbers was driven by increased direct flights from Southeast Asia and Australia, combined with a favorable exchange rate that made Japan an attractive destination for international travelers.\"}, {\"type\": \"text\", \"content\": \"The statistics were compiled using data from resort lift ticket sales, accommodation booking records, and immigration figures from New Chitose Airport.\"}], \"suggested_headline\": \"Niseko Visitor Numbers Surge 18% to 1.2 Million in Record Winter Season\", \"suggested_summary\": \"Hokkaido Tourism Organization reports Niseko attracted 1.2 million winter visitors, an 18% year-on-year increase driven by new flights and favorable exchange rates.\", \"risk_flags\": [], \"edit_suggestions\": [\"Break down visitor numbers by country of origin if available\", \"Include average spending per visitor for economic context\", \"Note any infrastructure strain or capacity concerns reported by locals\"]}"
+      }
+    ],
+    "scenario": "Tourism statistics announcement",
+    "complexity": "simple"
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are Cizer, the AI Editor-in-Chief of Niseko Gazet. Transform raw field notes into structured news articles. NEVER fabricate facts."
+      },
+      {
+        "role": "user",
+        "content": "{\"who\": \"Niseko Environmental Conservation Society (NECS)\", \"what\": \"Launched a three-year stream restoration project along the Shiribetsu River tributaries to protect native white-spotted char habitat\", \"when_occurred\": \"2025-03-01T09:00:00Z\", \"where_location\": \"Shiribetsu River tributaries, Niseko area\", \"why\": \"Development runoff and increased sedimentation have degraded spawning grounds for the native char population over the past decade\", \"how\": \"Partnership with Hokkaido University researchers and funding from the Japan Environment Ministry to install sediment traps, replant riparian zones, and monitor water quality\", \"quotes\": [{\"speaker\": \"Dr. Akiko Tanaka, NECS Director\", \"text\": \"The white-spotted char is an indicator species. If we lose them, it signals a much larger ecosystem failure in our waterways.\", \"context\": \"Press briefing at project launch event\"}, {\"speaker\": \"Professor Kenji Mori, Hokkaido University\", \"text\": \"Our baseline surveys show a 40 percent decline in char populations in these tributaries since 2015. This intervention is critical.\", \"context\": \"Press briefing at project launch event\"}]}"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"content_blocks\": [{\"type\": \"text\", \"content\": \"The Niseko Environmental Conservation Society has launched a three-year stream restoration project along tributaries of the Shiribetsu River, aiming to protect the habitat of the native white-spotted char.\"}, {\"type\": \"text\", \"content\": \"The project, developed in partnership with Hokkaido University researchers and funded by the Japan Environment Ministry, will install sediment traps, replant riparian vegetation, and establish ongoing water quality monitoring programs.\"}, {\"type\": \"quote\", \"content\": \"The white-spotted char is an indicator species. If we lose them, it signals a much larger ecosystem failure in our waterways.\", \"metadata\": {\"speaker\": \"Dr. Akiko Tanaka, NECS Director\"}}, {\"type\": \"text\", \"content\": \"Development activity in the Niseko area over the past decade has increased runoff and sedimentation, degrading the spawning grounds that the native char depend on for reproduction.\"}, {\"type\": \"quote\", \"content\": \"Our baseline surveys show a 40 percent decline in char populations in these tributaries since 2015. This intervention is critical.\", \"metadata\": {\"speaker\": \"Professor Kenji Mori, Hokkaido University\"}}, {\"type\": \"text\", \"content\": \"The project will run through 2028, with annual progress reports to be published by the NECS.\"}], \"suggested_headline\": \"Niseko Conservation Group Launches Three-Year River Restoration to Save Native Char\", \"suggested_summary\": \"NECS partners with Hokkaido University to restore Shiribetsu River tributaries after surveys reveal a 40% decline in native white-spotted char populations.\", \"risk_flags\": [], \"edit_suggestions\": [\"Add a map showing the specific tributary locations targeted\", \"Include comment from a local development company for balance\", \"Note any public volunteer opportunities associated with the project\"]}"
+      }
+    ],
+    "scenario": "Environmental conservation story with official quotes",
+    "complexity": "intermediate"
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are Cizer, the AI Editor-in-Chief of Niseko Gazet. Transform raw field notes into structured news articles. NEVER fabricate facts."
+      },
+      {
+        "role": "user",
+        "content": "{\"who\": \"A 14-year-old Australian skier\", \"what\": \"Suffered a broken leg after colliding with a tree in an off-piste area adjacent to a marked run\", \"when_occurred\": \"2025-02-08T13:30:00Z\", \"where_location\": \"Grand Hirafu resort, near the top of the King Triple Lift\", \"why\": \"The skier reportedly ventured outside the marked boundary into a tree-lined area with poor visibility due to heavy snowfall\", \"how\": \"Niseko ski patrol responded within 8 minutes and transported the skier by sled to the base medical center; the skier was then airlifted to Kutchan Red Cross Hospital\"}"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"content_blocks\": [{\"type\": \"text\", \"content\": \"A teenage foreign national was treated for a leg injury at Grand Hirafu resort on Saturday afternoon after reportedly skiing into a tree-lined area outside the marked boundary.\"}, {\"type\": \"text\", \"content\": \"Niseko ski patrol responded to the incident near the top of the King Triple Lift within eight minutes and transported the skier by sled to the base medical center. The injured skier was subsequently transferred to a hospital in Kutchan for further treatment.\"}, {\"type\": \"text\", \"content\": \"Poor visibility caused by heavy snowfall at the time of the incident may have been a contributing factor. Resort management has reminded all visitors to stay within marked boundaries, particularly during low-visibility conditions.\"}], \"suggested_headline\": \"Teenage Skier Injured After Leaving Marked Boundary at Grand Hirafu\", \"suggested_summary\": \"A teenage skier was hospitalized after colliding with a tree in an off-piste area at Grand Hirafu during heavy snowfall conditions.\", \"risk_flags\": [{\"type\": \"minor_involved\", \"description\": \"The injured skier is 14 years old; do not publish name, nationality, or identifying details without guardian consent\", \"severity\": \"high\"}, {\"type\": \"sensitive_location\", \"description\": \"Specific off-piste location near marked runs could encourage others to access the same area\", \"severity\": \"medium\"}], \"edit_suggestions\": [\"CRITICAL: Do not publish the minor's name, exact age, or identifying details without verified parental consent\", \"Generalize nationality to 'foreign national' to protect identity\", \"Confirm injury details with Kutchan Red Cross Hospital before publishing specifics\", \"Consider omitting precise location to avoid attracting skiers to the same off-piste area\"]}"
+      }
+    ],
+    "scenario": "Minor involved in ski accident report",
+    "complexity": "intermediate"
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are Cizer, the AI Editor-in-Chief of Niseko Gazet. Transform raw field notes into structured news articles. NEVER fabricate facts."
+      },
+      {
+        "role": "user",
+        "content": "{\"who\": \"Niseko Onsen Association and Dr. Haruki Sato, a visiting researcher from Osaka University\", \"what\": \"Presented claims that regular use of Niseko's natural hot springs reduces arthritis symptoms by up to 30 percent and boosts immune function\", \"when_occurred\": \"2025-03-10T14:00:00Z\", \"where_location\": \"Yukichichibu Onsen, Niseko\", \"why\": \"The association wants to promote onsen tourism with health-based marketing tied to the mineral content of local spring water\", \"how\": \"Dr. Sato cited a small pilot study of 45 participants over three months, not yet peer-reviewed, conducted at Yukichichibu Onsen\", \"quotes\": [{\"speaker\": \"Dr. Haruki Sato, Osaka University\", \"text\": \"Our preliminary data shows significant improvement in joint mobility and inflammatory markers among participants who bathed three or more times per week.\", \"context\": \"Presentation at Niseko Onsen Association event\"}]}"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"content_blocks\": [{\"type\": \"text\", \"content\": \"The Niseko Onsen Association has highlighted preliminary research suggesting potential health benefits from regular use of the area's natural hot springs, based on a presentation by a visiting Osaka University researcher.\"}, {\"type\": \"text\", \"content\": \"Dr. Haruki Sato presented data from a pilot study of 45 participants conducted over three months at Yukichichibu Onsen, which indicated improvements in joint mobility and inflammatory markers among frequent bathers.\"}, {\"type\": \"quote\", \"content\": \"Our preliminary data shows significant improvement in joint mobility and inflammatory markers among participants who bathed three or more times per week.\", \"metadata\": {\"speaker\": \"Dr. Haruki Sato, Osaka University\"}}, {\"type\": \"text\", \"content\": \"The study has not yet undergone peer review, and the small sample size means the findings should be considered preliminary. The Niseko Onsen Association expressed interest in using the research to support health-based tourism marketing for the region.\"}], \"suggested_headline\": \"Preliminary Study Suggests Health Benefits from Niseko Hot Springs\", \"suggested_summary\": \"A small, non-peer-reviewed pilot study presented at a Niseko Onsen Association event suggests regular hot spring use may improve joint mobility, though experts urge caution on the preliminary findings.\", \"risk_flags\": [{\"type\": \"medical_or_public_health_claim\", \"description\": \"Health claims based on a small, non-peer-reviewed pilot study; specific percentages like '30% reduction' should not be presented as established fact\", \"severity\": \"high\"}], \"edit_suggestions\": [\"CRITICAL: Do not repeat the '30 percent reduction' claim in the headline or summary without heavy qualification\", \"Clearly state the study is not peer-reviewed in prominent position\", \"Seek independent medical opinion on the claims\", \"Note the Onsen Association's commercial interest in promoting these findings\"]}"
+      }
+    ],
+    "scenario": "Medical/health claim about onsen benefits",
+    "complexity": "intermediate"
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are Cizer, the AI Editor-in-Chief of Niseko Gazet. Transform raw field notes into structured news articles. NEVER fabricate facts."
+      },
+      {
+        "role": "user",
+        "content": "{\"who\": \"Hokkaido Prefectural Police, Kutchan Station\", \"what\": \"Investigating a series of break-ins at three luxury vacation rental properties with an estimated combined loss of 12 million yen in electronics, jewelry, and cash\", \"when_occurred\": \"2025-02-15T08:00:00Z\", \"where_location\": \"Upper Hirafu area, Niseko\", \"why\": \"Police believe the properties were targeted because owners are overseas and units were vacant between rental bookings\", \"how\": \"Forced entry through rear service doors; police say a suspect was captured on a neighbor's security camera but has not yet been identified\", \"quotes\": [{\"speaker\": \"Sergeant Takuya Endo, Kutchan Police Station\", \"text\": \"We are pursuing several leads and ask anyone with information about suspicious activity in the Upper Hirafu area between February 10 and 14 to contact us immediately.\", \"context\": \"Police press statement\"}]}"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"content_blocks\": [{\"type\": \"text\", \"content\": \"Hokkaido Prefectural Police are investigating a series of break-ins at three luxury vacation rental properties in the Upper Hirafu area of Niseko, with an estimated combined loss of 12 million yen.\"}, {\"type\": \"text\", \"content\": \"According to police, the properties were forcibly entered through rear service doors between February 10 and 14. All three units were vacant between rental bookings at the time of the incidents, with the owners currently residing overseas.\"}, {\"type\": \"text\", \"content\": \"Investigators confirmed that a figure was captured on a neighboring property's security camera, but no suspect has been formally identified at this stage.\"}, {\"type\": \"quote\", \"content\": \"We are pursuing several leads and ask anyone with information about suspicious activity in the Upper Hirafu area between February 10 and 14 to contact us immediately.\", \"metadata\": {\"speaker\": \"Sergeant Takuya Endo, Kutchan Police Station\"}}, {\"type\": \"text\", \"content\": \"Property managers in the Hirafu area have been advised to review security arrangements for vacant units.\"}], \"suggested_headline\": \"Police Investigate Break-In Series at Luxury Hirafu Properties\", \"suggested_summary\": \"Kutchan police are investigating break-ins at three vacant luxury rentals in Upper Hirafu, with losses totaling 12 million yen. A suspect was captured on security footage but remains unidentified.\", \"risk_flags\": [{\"type\": \"ongoing_investigation\", \"description\": \"Active police investigation; publishing certain details could compromise the case or lead to misidentification\", \"severity\": \"high\"}, {\"type\": \"allegation_or_crime_accusation\", \"description\": \"Crime report involves unidentified suspect; care needed to avoid implicating innocent individuals\", \"severity\": \"medium\"}], \"edit_suggestions\": [\"Do not publish or describe security camera footage that could lead to vigilante identification attempts\", \"Verify all figures and details directly with Kutchan Police Station before publication\", \"Avoid naming specific properties or buildings to protect owners' privacy\", \"Include Kutchan Police Station contact number for tips\"]}"
+      }
+    ],
+    "scenario": "Police investigation into property theft",
+    "complexity": "advanced"
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are Cizer, the AI Editor-in-Chief of Niseko Gazet. Transform raw field notes into structured news articles. NEVER fabricate facts."
+      },
+      {
+        "role": "user",
+        "content": "{\"who\": \"Niseko ski patrol and Hokkaido Emergency Helicopter Service\", \"what\": \"Rescued two backcountry skiers buried in an avalanche; one suffered a crushed pelvis and multiple rib fractures, the other had severe hypothermia and a partially severed finger\", \"when_occurred\": \"2025-02-20T11:45:00Z\", \"where_location\": \"Nitonupuri backcountry zone west of Niseko Annupuri resort, Niseko\", \"why\": \"The pair triggered a size 2.5 slab avalanche while traversing a 38-degree slope despite a Level 3 considerable avalanche danger rating issued that morning\", \"how\": \"A third member of their party, who was not caught, activated an emergency beacon. Ski patrol located the buried pair using avalanche transceivers within 22 minutes. One was buried under approximately 1.5 meters of debris. Helicopter evacuation to Sapporo Medical University Hospital.\"}"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"content_blocks\": [{\"type\": \"text\", \"content\": \"Two backcountry skiers were rescued after being caught in an avalanche in the Nitonupuri area west of Niseko Annupuri resort on Thursday morning. Both were transported to a Sapporo hospital with serious injuries.\"}, {\"type\": \"text\", \"content\": \"The pair reportedly triggered a slab avalanche while traversing steep terrain in a zone rated Level 3 (considerable) danger by the morning's avalanche bulletin. A third member of the group, who avoided the slide, activated an emergency beacon.\"}, {\"type\": \"text\", \"content\": \"Niseko ski patrol reached the site and located both buried skiers using avalanche transceivers within 22 minutes. One skier was buried under approximately 1.5 meters of debris. The Hokkaido Emergency Helicopter Service airlifted both to Sapporo Medical University Hospital.\"}, {\"type\": \"text\", \"content\": \"Both skiers sustained serious injuries requiring hospital treatment. Their conditions have not been officially disclosed.\"}], \"suggested_headline\": \"Two Skiers Rescued After Backcountry Avalanche Near Niseko Annupuri\", \"suggested_summary\": \"Niseko ski patrol and helicopter crews rescued two backcountry skiers caught in an avalanche in the Nitonupuri zone. Both were hospitalized with serious injuries.\", \"risk_flags\": [{\"type\": \"graphic_content\", \"description\": \"Detailed injury descriptions (crushed pelvis, severed finger) are graphic and may not be appropriate for publication without editorial review\", \"severity\": \"high\"}, {\"type\": \"sensitive_location\", \"description\": \"Naming the exact backcountry zone and slope angle could serve as a guide for inexperienced skiers to access the same dangerous terrain\", \"severity\": \"medium\"}], \"edit_suggestions\": [\"CRITICAL: Generalize injury descriptions to 'serious injuries' rather than publishing graphic medical details\", \"Consider omitting exact slope angle and precise location coordinates\", \"Confirm injury status and identities with Sapporo Medical University Hospital\", \"Include a reminder of current avalanche danger rating and backcountry safety advice\", \"Note whether the skiers were carrying appropriate safety equipment\"]}"
+      }
+    ],
+    "scenario": "Graphic avalanche rescue with injuries",
+    "complexity": "advanced"
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are Cizer, the AI Editor-in-Chief of Niseko Gazet. Transform raw field notes into structured news articles. NEVER fabricate facts."
+      },
+      {
+        "role": "user",
+        "content": "{\"who\": \"Australian restaurateur James Whitfield and Japanese chef Yuki Kobayashi\", \"what\": \"Opening a new farm-to-table restaurant called Yukimura in central Kutchan, featuring a 40-seat dining room and open kitchen concept\", \"when_occurred\": \"2025-04-01T11:00:00Z\", \"where_location\": \"Central Kutchan, former Hokkaido Bank building on Ekimae-dori\", \"why\": \"The partners see year-round dining demand growing as Kutchan transitions from a seasonal ski town to a permanent residential community\", \"how\": \"Whitfield, who previously operated restaurants in Melbourne and Queenstown, invested personally alongside a group of Niseko-based hospitality investors. Kobayashi will lead the kitchen using produce sourced from Kutchan-area farms.\"}"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"content_blocks\": [{\"type\": \"text\", \"content\": \"A new farm-to-table restaurant named Yukimura is set to open in central Kutchan on April 1, occupying the former Hokkaido Bank building on Ekimae-dori.\"}, {\"type\": \"text\", \"content\": \"The venture is a partnership between Australian restaurateur James Whitfield, who has previously operated restaurants in Melbourne and Queenstown, and Japanese chef Yuki Kobayashi. The 40-seat restaurant will feature an open kitchen concept with a menu built around produce sourced from farms in the Kutchan area.\"}, {\"type\": \"text\", \"content\": \"The opening reflects growing confidence in Kutchan's year-round dining market, as the town continues its transition from a seasonal ski destination to a permanent residential community with sustained demand beyond the winter months.\"}], \"suggested_headline\": \"Farm-to-Table Restaurant Yukimura to Open in Central Kutchan\", \"suggested_summary\": \"Australian-Japanese partnership launches Yukimura, a 40-seat farm-to-table restaurant in central Kutchan, betting on year-round dining demand in the evolving town.\", \"risk_flags\": [], \"edit_suggestions\": [\"Add opening hours and reservation details closer to launch\", \"Include comment from Kobayashi on menu direction and sourcing philosophy\", \"Note the significance of reusing the former bank building for the local streetscape\"]}"
+      }
+    ],
+    "scenario": "New business opening with investor background",
+    "complexity": "simple"
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are Cizer, the AI Editor-in-Chief of Niseko Gazet. Transform raw field notes into structured news articles. NEVER fabricate facts."
+      },
+      {
+        "role": "user",
+        "content": "{\"who\": \"Prominent Niseko property developer Kenji Watanabe, CEO of Alpine Peaks Development\", \"what\": \"Accused in an anonymous social media post of bribing a Kutchan town planning official to fast-track zoning approvals for a controversial 15-story condominium project in Hirafu\", \"when_occurred\": \"2025-03-05T20:00:00Z\", \"where_location\": \"Hirafu, Niseko\", \"why\": \"The anonymous post alleges Watanabe made payments to an unnamed town planning official to bypass standard community consultation processes for the condo project, which has faced local opposition\", \"how\": \"The allegation appeared on a popular local Facebook group and was shared widely; it includes no verifiable evidence, only the anonymous poster's claims. Watanabe and the Kutchan Town office have not yet been contacted for comment.\"}"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"content_blocks\": [{\"type\": \"text\", \"content\": \"An anonymous social media post circulating in local online groups has made unverified allegations regarding the zoning approval process for a proposed 15-story condominium development in Hirafu.\"}, {\"type\": \"text\", \"content\": \"The post, which appeared on a popular Niseko-area Facebook group and was widely shared, alleges irregularities in how the project received planning approval. No verifiable evidence has been presented to support the claims.\"}, {\"type\": \"text\", \"content\": \"Neither the developer nor the Kutchan Town planning office have been contacted for comment on the allegations at the time of writing. The proposed condominium project has previously drawn opposition from some local residents.\"}], \"suggested_headline\": \"Unverified Claims Circulate Online About Hirafu Condo Zoning Approval\", \"suggested_summary\": \"Anonymous and unverified social media allegations regarding a Hirafu condominium zoning approval are circulating online. No evidence has been presented and no parties have been contacted for comment.\", \"risk_flags\": [{\"type\": \"identifiable_private_individual\", \"description\": \"Named private individual (developer CEO) is the subject of unverified corruption allegations from an anonymous source\", \"severity\": \"critical\"}, {\"type\": \"high_defamation_risk\", \"description\": \"Publishing bribery allegations based solely on an anonymous, evidence-free social media post carries extreme defamation risk under Japanese law\", \"severity\": \"critical\"}], \"edit_suggestions\": [\"CRITICAL: Do not publish the developer's name in connection with bribery allegations until independently verified with concrete evidence\", \"CRITICAL: Contact both the developer and Kutchan Town office for comment before any publication\", \"Consult legal counsel before publishing any version of this story\", \"If story is newsworthy, report on the community debate around the condo project without repeating the specific unverified bribery allegation\", \"Consider whether the anonymous post itself is the story, rather than the allegations it contains\"]}"
+      }
+    ],
+    "scenario": "Public figure controversy with defamation risk",
+    "complexity": "advanced"
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are Cizer, the AI Editor-in-Chief of Niseko Gazet. Transform raw field notes into structured news articles. NEVER fabricate facts."
+      },
+      {
+        "role": "user",
+        "content": "{\"who\": \"Kutchan Town Cultural Affairs Office and local volunteer organizers\", \"what\": \"Announced the 12th annual Kutchan Yukiakari Snow Lantern Festival, featuring over 2,000 handmade snow lanterns, live taiko drumming, food stalls, and a fireworks display\", \"when_occurred\": \"2025-02-22T10:00:00Z\", \"where_location\": \"Asahi-ga-oka Park, Kutchan\", \"why\": \"The annual festival celebrates midwinter and aims to strengthen community bonds between long-term residents and the growing international population\", \"how\": \"Over 150 volunteers from both the Japanese and international communities spent two weeks constructing the lanterns; the event is free and open to the public\"}"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"content_blocks\": [{\"type\": \"text\", \"content\": \"The 12th annual Kutchan Yukiakari Snow Lantern Festival will light up Asahi-ga-oka Park on February 22, featuring more than 2,000 handmade snow lanterns crafted by community volunteers.\"}, {\"type\": \"text\", \"content\": \"This year's program includes live taiko drumming performances, food stalls showcasing local cuisine, and a fireworks display after dark. The event is free and open to the public.\"}, {\"type\": \"text\", \"content\": \"Over 150 volunteers from both the Japanese and international communities contributed two weeks of preparation to build the lanterns, reflecting the festival's mission to strengthen ties across Kutchan's increasingly diverse population.\"}, {\"type\": \"text\", \"content\": \"The Kutchan Town Cultural Affairs Office has organized the event alongside local volunteer groups since the festival's inception in 2014.\"}], \"suggested_headline\": \"Kutchan Snow Lantern Festival Returns with 2,000 Lanterns and Fireworks\", \"suggested_summary\": \"The 12th annual Yukiakari Snow Lantern Festival brings over 2,000 handmade lanterns, taiko drumming, food stalls, and fireworks to Asahi-ga-oka Park on February 22. Free and open to all.\", \"risk_flags\": [], \"edit_suggestions\": [\"Add exact start and end times for the event\", \"Include parking and public transport information\", \"Note whether the event runs in bad weather or has a rain date\"]}"
+      }
+    ],
+    "scenario": "Community festival event preview",
+    "complexity": "simple"
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are Cizer, the AI Editor-in-Chief of Niseko Gazet. Transform raw field notes into structured news articles. NEVER fabricate facts."
+      },
+      {
+        "role": "user",
+        "content": "{\"who\": \"Kutchan Town Council members\", \"what\": \"Debated a proposed zoning amendment that would allow buildings up to 20 meters in the Hirafu commercial district, up from the current 13-meter limit\", \"when_occurred\": \"2025-03-18T13:00:00Z\", \"where_location\": \"Kutchan Town Hall, council chambers\", \"why\": \"Developers argue the height increase is necessary to meet accommodation demand, while residents fear it will block mountain views and change the village character\", \"how\": \"The amendment was introduced by the town planning committee and debated for over three hours before being tabled for further community input\", \"quotes\": [{\"speaker\": \"Councilor Yoko Fujita\", \"text\": \"We cannot keep building outward. Increasing height limits in the commercial zone is the most efficient way to add capacity without consuming more farmland.\", \"context\": \"Speaking in favor of the amendment during council session\"}, {\"speaker\": \"Councilor Daisuke Murakami\", \"text\": \"Twenty meters will fundamentally alter the streetscape that visitors come here to enjoy. Once we lose that character, we cannot get it back.\", \"context\": \"Speaking against the amendment during council session\"}, {\"speaker\": \"Mayor Nishie Eiji\", \"text\": \"Both sides raise valid points. We will not rush this decision. The amendment is tabled until a full public consultation can be completed.\", \"context\": \"Closing remarks at end of debate\"}]}"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"content_blocks\": [{\"type\": \"text\", \"content\": \"Kutchan Town Council debated a proposed zoning amendment on Tuesday that would raise the maximum building height in the Hirafu commercial district from 13 meters to 20 meters, before tabling the measure for further public consultation.\"}, {\"type\": \"text\", \"content\": \"The amendment, introduced by the town planning committee, prompted over three hours of debate as council members weighed the need for additional accommodation capacity against concerns about preserving the area's village character.\"}, {\"type\": \"quote\", \"content\": \"We cannot keep building outward. Increasing height limits in the commercial zone is the most efficient way to add capacity without consuming more farmland.\", \"metadata\": {\"speaker\": \"Councilor Yoko Fujita\"}}, {\"type\": \"quote\", \"content\": \"Twenty meters will fundamentally alter the streetscape that visitors come here to enjoy. Once we lose that character, we cannot get it back.\", \"metadata\": {\"speaker\": \"Councilor Daisuke Murakami\"}}, {\"type\": \"text\", \"content\": \"The debate highlighted a persistent tension in the Niseko area between accommodating rapid tourism growth and maintaining the qualities that attract visitors and residents in the first place.\"}, {\"type\": \"quote\", \"content\": \"Both sides raise valid points. We will not rush this decision. The amendment is tabled until a full public consultation can be completed.\", \"metadata\": {\"speaker\": \"Mayor Nishie Eiji\"}}, {\"type\": \"text\", \"content\": \"No date has been set for the public consultation period. The amendment will return to the council agenda once community input has been gathered.\"}], \"suggested_headline\": \"Kutchan Tables Hirafu Height Limit Debate After Three-Hour Council Session\", \"suggested_summary\": \"A proposal to raise Hirafu's building height limit from 13m to 20m was tabled by Kutchan Town Council after heated debate, with a public consultation period to follow.\", \"risk_flags\": [], \"edit_suggestions\": [\"Include details on how residents can participate in the upcoming public consultation\", \"Add context on how many development applications are currently pending under existing limits\", \"Seek comment from the Niseko Area Developers Association\"]}"
+      }
+    ],
+    "scenario": "Multi-quote council debate on development",
+    "complexity": "intermediate"
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are Cizer, the AI Editor-in-Chief of Niseko Gazet. Transform raw field notes into structured news articles. NEVER fabricate facts."
+      },
+      {
+        "role": "user",
+        "content": "{\"who\": \"Kutchan Elementary School staff and Hokkaido wildlife management officers\", \"what\": \"A brown bear was sighted approximately 200 meters from Kutchan Elementary School during morning drop-off hours; wildlife officers responded and tracked the bear away from the area\", \"when_occurred\": \"2025-05-12T07:45:00Z\", \"where_location\": \"Residential area near Kutchan Elementary School, Kutchan\", \"why\": \"Spring emergence from hibernation and expanding development into bear habitat have increased urban wildlife encounters in the Kutchan area in recent years\", \"how\": \"A parent dropping off a child spotted the bear near a stream behind residential houses and called police. Hokkaido wildlife management officers arrived within 15 minutes and used non-lethal deterrents to drive the bear toward forested areas northwest of town. The school initiated its lockdown protocol as a precaution.\"}"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"content_blocks\": [{\"type\": \"text\", \"content\": \"A brown bear was sighted near Kutchan Elementary School during morning drop-off hours on Monday, prompting a swift response from wildlife management officers and a precautionary school lockdown.\"}, {\"type\": \"text\", \"content\": \"The bear was spotted approximately 200 meters from the school by a parent at around 7:45 a.m., near a stream behind residential houses. Police were immediately notified, and Hokkaido wildlife management officers arrived within 15 minutes.\"}, {\"type\": \"text\", \"content\": \"Officers used non-lethal deterrents to guide the bear away from the residential area toward forested land northwest of town. Kutchan Elementary School activated its lockdown protocol during the response as a precautionary measure and resumed normal operations once the area was declared clear.\"}, {\"type\": \"text\", \"content\": \"Wildlife encounters in the Kutchan area have increased in recent years as spring bear emergence coincides with ongoing development that encroaches on natural habitat. Residents are advised to secure garbage and food waste and to report any sightings immediately.\"}], \"suggested_headline\": \"Brown Bear Sighted Near Kutchan School Prompts Lockdown and Wildlife Response\", \"suggested_summary\": \"A brown bear spotted 200 meters from Kutchan Elementary School during drop-off hours was driven away by wildlife officers. The school briefly locked down as a precaution.\", \"risk_flags\": [{\"type\": \"sensitive_location\", \"description\": \"Incident occurred near an elementary school during hours when children were present; reporting must avoid causing undue panic while accurately conveying the safety response\", \"severity\": \"medium\"}], \"edit_suggestions\": [\"Confirm with the school that the lockdown has been fully lifted before publishing\", \"Include advice from wildlife officers on what residents should do if they encounter a bear\", \"Add context on how many bear sightings have occurred in the Kutchan area this spring\", \"Consider whether naming the specific school is necessary or if 'a Kutchan elementary school' is sufficient\"]}"
+      }
+    ],
+    "scenario": "Wildlife encounter near school zone",
+    "complexity": "intermediate"
   }
 ]
