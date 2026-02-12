@@ -19,14 +19,15 @@ export const POST = withAuth(async (req, { params, session }) => {
   const result = await createApproval(id, session.user.id, parsed.data);
 
   if ("error" in result) {
-    const statusMap = {
+    const errorKey = result.error as string;
+    const statusMap: Record<string, number> = {
       version_not_found: 404,
       already_approved: 409,
-    } as const;
+    };
 
     return NextResponse.json(
-      { error: result.error },
-      { status: statusMap[result.error] ?? 400 }
+      { error: errorKey },
+      { status: statusMap[errorKey] ?? 400 }
     );
   }
 

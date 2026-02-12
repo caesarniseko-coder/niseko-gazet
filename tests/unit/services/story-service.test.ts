@@ -77,13 +77,8 @@ describe("Publishing Invariant - Unit Tests", () => {
   });
 
   it("same content produces same hash (deterministic)", () => {
-    // Reset mock to use real implementation for this test
-    const { generateVersionHash: realHash } = vi.importActual<
-      typeof import("@/lib/utils/version-hash")
-    >("@/lib/utils/version-hash");
-
-    // Since we're using vi.mock, we'll test with the mock
     // The real determinism is tested in version-hash.test.ts
+    // Here we verify the mock returns consistent results
     const hash1 = generateVersionHash(
       [{ type: "text", content: "Same" }],
       [],

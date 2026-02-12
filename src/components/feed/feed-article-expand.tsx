@@ -129,7 +129,7 @@ export function FeedArticleExpand({
                             <p className="font-display text-xl italic text-ice/90 leading-relaxed">
                               &ldquo;{block.content}&rdquo;
                             </p>
-                            {block.metadata?.speaker && (
+                            {block.metadata?.speaker != null && (
                               <cite className="block mt-2 text-xs text-ice/50 not-italic uppercase tracking-wider">
                                 &mdash; {String(block.metadata.speaker)}
                               </cite>
@@ -146,7 +146,7 @@ export function FeedArticleExpand({
                                 className="w-full h-full object-cover"
                               />
                             </div>
-                            {block.metadata?.caption && (
+                            {block.metadata?.caption != null && (
                               <figcaption className="px-6 mt-2 text-xs text-ice/40">
                                 {String(block.metadata.caption)}
                               </figcaption>

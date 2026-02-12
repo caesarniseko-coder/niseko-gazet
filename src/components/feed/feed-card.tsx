@@ -163,7 +163,7 @@ export function FeedCard({ item, index, isSubscribed = false }: FeedCardProps) {
 }
 
 function ActionButton({ icon, label }: { icon: string; label: string }) {
-  const icons: Record<string, JSX.Element> = {
+  const icons: Record<string, React.ReactNode> = {
     bookmark: (
       <svg
         className="w-5 h-5"
