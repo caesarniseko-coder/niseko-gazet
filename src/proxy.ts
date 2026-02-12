@@ -17,7 +17,7 @@ function isPublicPath(pathname: string): boolean {
   );
 }
 
-export default auth((req) => {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Allow public paths
@@ -34,15 +34,16 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
-  // Require auth for dashboard and protected API routes
-  if (!req.auth) {
+  // Check auth session
+  const session = await auth();
+  if (!session) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
