@@ -1,0 +1,56 @@
+[
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are Cizer, the AI Editor-in-Chief of Niseko Gazet. Transform raw field notes into structured news articles. NEVER fabricate facts."
+      },
+      {
+        "role": "user",
+        "content": "{\"who\": \"Niseko United Resort management\", \"what\": \"Announced new avalanche safety system installation across all four resort areas\", \"when_occurred\": \"2025-01-15T09:00:00Z\", \"where_location\": \"Niseko United Resort, Hokkaido\", \"why\": \"Three near-miss incidents in the backcountry last season prompted safety review\", \"how\": \"Partnership with Swiss avalanche technology company Wyssen to install remote-triggered systems\"}"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"content_blocks\": [{\"type\": \"text\", \"content\": \"Niseko United Resort has announced the installation of a comprehensive new avalanche safety system across all four resort areas, following three near-miss incidents in the backcountry during the previous season.\"}, {\"type\": \"text\", \"content\": \"The resort management confirmed a partnership with Swiss avalanche technology company Wyssen to deploy remote-triggered avalanche control systems, marking one of the largest safety infrastructure investments in Niseko's history.\"}, {\"type\": \"text\", \"content\": \"The decision comes after a thorough safety review prompted by last season's close calls, which highlighted gaps in the existing avalanche mitigation infrastructure.\"}], \"suggested_headline\": \"Niseko United Installs Swiss Avalanche Safety System After Near-Miss Incidents\", \"suggested_summary\": \"Niseko United Resort partners with Swiss firm Wyssen to deploy remote-triggered avalanche control across all four areas following safety review.\", \"risk_flags\": [], \"edit_suggestions\": [\"Consider interviewing Wyssen representatives for technical details\", \"Add timeline for when the system will be operational\"]}"
+      }
+    ],
+    "scenario": "Resort safety infrastructure announcement",
+    "complexity": "simple"
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are Cizer, the AI Editor-in-Chief of Niseko Gazet. Transform raw field notes into structured news articles. NEVER fabricate facts."
+      },
+      {
+        "role": "user",
+        "content": "{\"who\": \"Local restaurant owner Takeshi Yamamoto, age 45\", \"what\": \"Accused of food safety violations by former employee whistleblower\", \"when_occurred\": \"2025-02-01T14:00:00Z\", \"where_location\": \"Hirafu Village, Niseko\", \"why\": \"Former employee alleges expired ingredients were relabeled and served to customers\", \"how\": \"Anonymous tip submitted to Niseko Gazet with photographs of relabeled packaging\"}"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"content_blocks\": [{\"type\": \"text\", \"content\": \"A Hirafu Village restaurant is facing food safety allegations from a former employee, who claims expired ingredients were relabeled and served to customers.\"}, {\"type\": \"text\", \"content\": \"The allegations, submitted as an anonymous tip to Niseko Gazet and accompanied by photographs purporting to show relabeled packaging, are yet to be independently verified.\"}, {\"type\": \"text\", \"content\": \"The restaurant owner has not yet responded to requests for comment. Local health authorities have been notified of the allegations.\"}], \"suggested_headline\": \"Hirafu Restaurant Faces Food Safety Allegations from Former Employee\", \"suggested_summary\": \"Anonymous whistleblower alleges a Hirafu Village restaurant relabeled expired ingredients; claims are unverified.\", \"risk_flags\": [{\"type\": \"allegation_or_crime_accusation\", \"description\": \"Unverified food safety allegations against named business\", \"severity\": \"high\"}, {\"type\": \"identifiable_private_individual\", \"description\": \"Named private business owner facing unverified allegations\", \"severity\": \"high\"}, {\"type\": \"high_defamation_risk\", \"description\": \"Publishing unverified allegations could constitute defamation\", \"severity\": \"high\"}], \"edit_suggestions\": [\"CRITICAL: Verify allegations independently before publishing\", \"Remove the owner name until allegations are verified\", \"Contact health authorities for their assessment\", \"Seek response from the restaurant before publishing\"]}"
+      }
+    ],
+    "scenario": "Food safety whistleblower allegation with multiple risk flags",
+    "complexity": "advanced"
+  },
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are Cizer, the AI Editor-in-Chief of Niseko Gazet. Transform raw field notes into structured news articles. NEVER fabricate facts."
+      },
+      {
+        "role": "user",
+        "content": "{\"who\": \"Kutchan Town Council\", \"what\": \"Approved 2 billion yen budget for new international school facility\", \"when_occurred\": \"2025-01-20T10:00:00Z\", \"where_location\": \"Kutchan Town Hall\", \"why\": \"Growing international resident population and demand for English-medium education\", \"how\": \"Unanimous council vote after 6 months of community consultation\", \"quotes\": [{\"speaker\": \"Mayor Nishie Eiji\", \"text\": \"This investment reflects our commitment to making Niseko a truly global community\", \"context\": \"Post-vote press conference\"}]}"
+      },
+      {
+        "role": "assistant",
+        "content": "{\"content_blocks\": [{\"type\": \"text\", \"content\": \"Kutchan Town Council has unanimously approved a 2 billion yen budget for a new international school facility, responding to growing demand for English-medium education from the area's expanding international community.\"}, {\"type\": \"text\", \"content\": \"The approval followed six months of community consultation, during which residents and educators provided input on the school's design and curriculum scope.\"}, {\"type\": \"quote\", \"content\": \"This investment reflects our commitment to making Niseko a truly global community\", \"metadata\": {\"speaker\": \"Mayor Nishie Eiji\"}}, {\"type\": \"text\", \"content\": \"The new facility will serve both the growing number of international families settling permanently in the Niseko area and local families seeking bilingual education options.\"}], \"suggested_headline\": \"Kutchan Approves \\u00a52 Billion International School After Unanimous Vote\", \"suggested_summary\": \"Kutchan Town Council unanimously approves major investment in new international school facility after six months of community consultation.\", \"risk_flags\": [], \"edit_suggestions\": [\"Add expected completion timeline\", \"Include details on location of the new facility\", \"Note current enrollment numbers at existing international schools\"]}"
+      }
+    ],
+    "scenario": "Local government budget approval with official quote",
+    "complexity": "intermediate"
+  }
+]
