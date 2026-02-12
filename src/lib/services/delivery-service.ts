@@ -1,11 +1,5 @@
-import { db } from "@/lib/db";
-import {
-  deliveryLogs,
-  subscriptions,
-  userPreferences,
-  stories,
-} from "@/lib/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { supabase } from "@/lib/supabase/server";
+import { mapRows } from "@/lib/supabase/helpers";
 
 type DeliveryEntry = {
   userId: string;
@@ -25,44 +19,45 @@ export async function orchestrateDelivery(
   versionHash: string
 ): Promise<{ delivered: number; suppressed: number; failed: number }> {
   // Get the story details
-  const [story] = await db
-    .select()
-    .from(stories)
-    .where(eq(stories.id, storyId))
-    .limit(1);
+  const { data: story } = await supabase
+    .from("stories")
+    .select("id, topic_tags")
+    .eq("id", storyId)
+    .maybeSingle();
 
   if (!story) return { delivered: 0, suppressed: 0, failed: 0 };
 
   // Get all active subscribers
-  const activeSubscribers = await db
-    .select({
-      userId: subscriptions.userId,
-      plan: subscriptions.plan,
-    })
-    .from(subscriptions)
-    .where(eq(subscriptions.isActive, true));
+  const { data: activeSubscribers } = await supabase
+    .from("subscriptions")
+    .select("user_id, plan")
+    .eq("is_active", true);
+
+  if (!activeSubscribers || activeSubscribers.length === 0) {
+    return { delivered: 0, suppressed: 0, failed: 0 };
+  }
 
   const results = { delivered: 0, suppressed: 0, failed: 0 };
   const entries: DeliveryEntry[] = [];
 
   for (const subscriber of activeSubscribers) {
     // Get user preferences
-    const [prefs] = await db
-      .select()
-      .from(userPreferences)
-      .where(eq(userPreferences.userId, subscriber.userId))
-      .limit(1);
+    const { data: prefs } = await supabase
+      .from("user_preferences")
+      .select("*")
+      .eq("user_id", subscriber.user_id)
+      .maybeSingle();
 
     // Check muted topics
-    const storyTopics = (story.topicTags as string[]) ?? [];
-    const mutedTopics = (prefs?.mutedTopics as string[]) ?? [];
+    const storyTopics = (story.topic_tags as string[]) ?? [];
+    const mutedTopics = (prefs?.muted_topics as string[]) ?? [];
     const isMuted = storyTopics.some((t) =>
       mutedTopics.map((m) => m.toLowerCase()).includes(t.toLowerCase())
     );
 
     if (isMuted) {
       entries.push({
-        userId: subscriber.userId,
+        userId: subscriber.user_id,
         storyId,
         versionHash,
         channel: "feed",
@@ -74,8 +69,8 @@ export async function orchestrateDelivery(
     }
 
     // Check quiet hours
-    if (prefs?.quietHoursStart && prefs?.quietHoursEnd) {
-      const tz = prefs.quietHoursTimezone ?? "Asia/Tokyo";
+    if (prefs?.quiet_hours_start && prefs?.quiet_hours_end) {
+      const tz = prefs.quiet_hours_timezone ?? "Asia/Tokyo";
       const now = new Date();
       const formatter = new Intl.DateTimeFormat("en-US", {
         timeZone: tz,
@@ -85,9 +80,9 @@ export async function orchestrateDelivery(
       });
       const currentTime = formatter.format(now);
 
-      if (isInQuietHours(currentTime, prefs.quietHoursStart, prefs.quietHoursEnd)) {
+      if (isInQuietHours(currentTime, prefs.quiet_hours_start, prefs.quiet_hours_end)) {
         entries.push({
-          userId: subscriber.userId,
+          userId: subscriber.user_id,
           storyId,
           versionHash,
           channel: "feed",
@@ -100,25 +95,21 @@ export async function orchestrateDelivery(
     }
 
     // Check frequency cap
-    if (prefs?.maxNotificationsPerDay) {
+    if (prefs?.max_notifications_per_day) {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
-      const [countResult] = await db
-        .select({ count: sql<number>`COUNT(*)` })
-        .from(deliveryLogs)
-        .where(
-          and(
-            eq(deliveryLogs.userId, subscriber.userId),
-            eq(deliveryLogs.result, "delivered"),
-            sql`${deliveryLogs.timestamp} >= ${todayStart}`
-          )
-        );
+      const { count } = await supabase
+        .from("delivery_logs")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", subscriber.user_id)
+        .eq("result", "delivered")
+        .gte("timestamp", todayStart.toISOString());
 
-      const todayCount = countResult?.count ?? 0;
-      if (todayCount >= prefs.maxNotificationsPerDay) {
+      const todayCount = count ?? 0;
+      if (todayCount >= prefs.max_notifications_per_day) {
         entries.push({
-          userId: subscriber.userId,
+          userId: subscriber.user_id,
           storyId,
           versionHash,
           channel: "feed",
@@ -132,7 +123,7 @@ export async function orchestrateDelivery(
 
     // Deliver to feed (always)
     entries.push({
-      userId: subscriber.userId,
+      userId: subscriber.user_id,
       storyId,
       versionHash,
       channel: "feed",
@@ -143,14 +134,14 @@ export async function orchestrateDelivery(
 
   // Batch insert delivery logs
   if (entries.length > 0) {
-    await db.insert(deliveryLogs).values(
+    await supabase.from("delivery_logs").insert(
       entries.map((e) => ({
-        userId: e.userId,
-        storyId: e.storyId,
-        versionHash: e.versionHash,
+        user_id: e.userId,
+        story_id: e.storyId,
+        version_hash: e.versionHash,
         channel: e.channel,
         result: e.result,
-        errorMessage: e.errorMessage ?? null,
+        error_message: e.errorMessage ?? null,
       }))
     );
   }
@@ -159,7 +150,6 @@ export async function orchestrateDelivery(
 }
 
 function isInQuietHours(current: string, start: string, end: string): boolean {
-  // Handle wrap-around (e.g., 22:00 to 06:00)
   if (start <= end) {
     return current >= start && current < end;
   }
@@ -167,8 +157,11 @@ function isInQuietHours(current: string, start: string, end: string): boolean {
 }
 
 export async function getDeliveryLogs(storyId: string) {
-  return db
-    .select()
-    .from(deliveryLogs)
-    .where(eq(deliveryLogs.storyId, storyId));
+  const { data, error } = await supabase
+    .from("delivery_logs")
+    .select("*")
+    .eq("story_id", storyId);
+
+  if (error) throw new Error(`Failed to get delivery logs: ${error.message}`);
+  return mapRows(data ?? []);
 }

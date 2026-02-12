@@ -1,5 +1,5 @@
-import { db } from "@/lib/db";
-import { auditLogs } from "@/lib/db/schema";
+import { supabase } from "@/lib/supabase/server";
+import { toCamelCase } from "@/lib/supabase/helpers";
 
 export async function createAuditEntry(params: {
   actorId: string | null;
@@ -10,20 +10,22 @@ export async function createAuditEntry(params: {
   ipAddress?: string;
   userAgent?: string;
 }) {
-  const [entry] = await db
-    .insert(auditLogs)
-    .values({
-      actorId: params.actorId,
+  const { data, error } = await supabase
+    .from("audit_logs")
+    .insert({
+      actor_id: params.actorId,
       action: params.action,
-      resourceType: params.resourceType,
-      resourceId: params.resourceId,
+      resource_type: params.resourceType,
+      resource_id: params.resourceId,
       changes: params.changes ?? null,
-      ipAddress: params.ipAddress ?? null,
-      userAgent: params.userAgent ?? null,
+      ip_address: params.ipAddress ?? null,
+      user_agent: params.userAgent ?? null,
     })
-    .returning();
+    .select()
+    .single();
 
-  return entry;
+  if (error) throw new Error(`Failed to create audit entry: ${error.message}`);
+  return toCamelCase(data);
 }
 
 /**

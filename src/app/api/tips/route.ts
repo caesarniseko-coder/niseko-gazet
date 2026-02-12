@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { moderationQueue } from "@/lib/db/schema";
+import { supabase } from "@/lib/supabase/server";
 import { z } from "zod";
 
 const tipSchema = z.object({
@@ -25,16 +24,24 @@ export async function POST(req: NextRequest) {
     req.headers.get("x-real-ip") ??
     "unknown";
 
-  const [item] = await db
-    .insert(moderationQueue)
-    .values({
+  const { data: item, error } = await supabase
+    .from("moderation_queue")
+    .insert({
       type: "anonymous_tip",
       content: parsed.data.content,
-      submitterIp: ip,
-      submitterEmail: parsed.data.email ?? null,
-      relatedStoryId: parsed.data.relatedStoryId ?? null,
+      submitter_ip: ip,
+      submitter_email: parsed.data.email ?? null,
+      related_story_id: parsed.data.relatedStoryId ?? null,
     })
-    .returning();
+    .select()
+    .single();
+
+  if (error) {
+    return NextResponse.json(
+      { error: "Failed to submit tip" },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json(
     { id: item.id, message: "Tip submitted for review" },

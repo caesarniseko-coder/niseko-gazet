@@ -1,10 +1,5 @@
-import { db } from "@/lib/db";
-import {
-  stories,
-  storyVersions,
-  approvalRecords,
-} from "@/lib/db/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { supabase } from "@/lib/supabase/server";
+import { toCamelCase, mapRows } from "@/lib/supabase/helpers";
 import { generateVersionHash } from "@/lib/utils/version-hash";
 import { uniqueSlug } from "@/lib/utils/slug";
 import type { CreateStoryInput, UpdateStoryInput, CreateStoryVersionInput } from "@/lib/validators/story";
@@ -15,73 +10,84 @@ import type { CreateApprovalInput, PublishInput } from "@/lib/validators/approva
 export async function createStory(authorId: string, input: CreateStoryInput) {
   const slug = uniqueSlug(input.headline);
 
-  const [story] = await db
-    .insert(stories)
-    .values({
+  const { data, error } = await supabase
+    .from("stories")
+    .insert({
       slug,
       headline: input.headline,
       summary: input.summary ?? null,
-      topicTags: input.topicTags,
-      geoTags: input.geoTags,
-      authorId,
-      fieldNoteId: input.fieldNoteId ?? null,
-      isGated: input.isGated,
+      topic_tags: input.topicTags,
+      geo_tags: input.geoTags,
+      author_id: authorId,
+      field_note_id: input.fieldNoteId ?? null,
+      is_gated: input.isGated,
     })
-    .returning();
+    .select()
+    .single();
 
-  return story;
+  if (error) throw new Error(`Failed to create story: ${error.message}`);
+  return toCamelCase(data);
 }
 
 export async function getStory(id: string) {
-  const [story] = await db
-    .select()
-    .from(stories)
-    .where(eq(stories.id, id))
-    .limit(1);
+  const { data, error } = await supabase
+    .from("stories")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
 
-  return story ?? null;
+  if (error) throw new Error(`Failed to get story: ${error.message}`);
+  return data ? toCamelCase(data) : null;
 }
 
 export async function listStories(filters?: {
   status?: string;
   authorId?: string;
 }) {
-  let query = db.select().from(stories).$dynamic();
+  let query = supabase
+    .from("stories")
+    .select("*")
+    .order("created_at", { ascending: false });
 
   if (filters?.status) {
-    query = query.where(eq(stories.status, filters.status as "draft" | "in_review" | "approved" | "published" | "corrected" | "retracted"));
+    query = query.eq("status", filters.status);
   }
   if (filters?.authorId) {
-    query = query.where(eq(stories.authorId, filters.authorId));
+    query = query.eq("author_id", filters.authorId);
   }
 
-  return query.orderBy(desc(stories.createdAt));
+  const { data, error } = await query;
+  if (error) throw new Error(`Failed to list stories: ${error.message}`);
+  return mapRows(data ?? []);
 }
 
 export async function updateStory(id: string, input: UpdateStoryInput) {
-  const [existing] = await db
-    .select()
-    .from(stories)
-    .where(eq(stories.id, id))
-    .limit(1);
+  // Check exists
+  const { data: existing } = await supabase
+    .from("stories")
+    .select("id")
+    .eq("id", id)
+    .maybeSingle();
 
   if (!existing) return null;
 
-  const [updated] = await db
-    .update(stories)
-    .set({
-      ...(input.headline !== undefined && { headline: input.headline }),
-      ...(input.summary !== undefined && { summary: input.summary }),
-      ...(input.topicTags !== undefined && { topicTags: input.topicTags }),
-      ...(input.geoTags !== undefined && { geoTags: input.geoTags }),
-      ...(input.isGated !== undefined && { isGated: input.isGated }),
-      ...(input.status !== undefined && { status: input.status }),
-      updatedAt: new Date(),
-    })
-    .where(eq(stories.id, id))
-    .returning();
+  const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (input.headline !== undefined) updateData.headline = input.headline;
+  if (input.summary !== undefined) updateData.summary = input.summary;
+  if (input.topicTags !== undefined) updateData.topic_tags = input.topicTags;
+  if (input.geoTags !== undefined) updateData.geo_tags = input.geoTags;
+  if (input.isGated !== undefined) updateData.is_gated = input.isGated;
+  if (input.status !== undefined) updateData.status = input.status;
 
-  return updated;
+  const { data, error } = await supabase
+    .from("stories")
+    .update(updateData)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to update story: ${error.message}`);
+  return toCamelCase(data);
 }
 
 // ── Story Versions ─────────────────────────────────────
@@ -93,64 +99,69 @@ export async function createStoryVersion(
   const story = await getStory(storyId);
   if (!story) return { error: "story_not_found" as const };
 
-  // Calculate the version hash
   const versionHash = generateVersionHash(
     input.contentBlocks,
     input.sourceLog,
     input.riskFlags
   );
 
-  // Get the next version number
-  const [latest] = await db
-    .select({ maxVersion: sql<number>`COALESCE(MAX(${storyVersions.versionNumber}), 0)` })
-    .from(storyVersions)
-    .where(eq(storyVersions.storyId, storyId));
+  // Get the next version number (order by version_number desc, take first)
+  const { data: latestVersion } = await supabase
+    .from("story_versions")
+    .select("version_number")
+    .eq("story_id", storyId)
+    .order("version_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  const versionNumber = (latest?.maxVersion ?? 0) + 1;
+  const versionNumber = (latestVersion?.version_number ?? 0) + 1;
 
-  const [version] = await db
-    .insert(storyVersions)
-    .values({
-      storyId,
-      versionHash,
-      contentBlocks: input.contentBlocks,
-      sourceLog: input.sourceLog,
-      publicSources: input.publicSources,
-      riskFlags: input.riskFlags,
-      versionNumber,
+  const { data: version, error } = await supabase
+    .from("story_versions")
+    .insert({
+      story_id: storyId,
+      version_hash: versionHash,
+      content_blocks: input.contentBlocks,
+      source_log: input.sourceLog,
+      public_sources: input.publicSources,
+      risk_flags: input.riskFlags,
+      version_number: versionNumber,
     })
-    .returning();
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to create story version: ${error.message}`);
 
   // Update story's current version hash
-  await db
-    .update(stories)
-    .set({ currentVersionHash: versionHash, updatedAt: new Date() })
-    .where(eq(stories.id, storyId));
+  await supabase
+    .from("stories")
+    .update({ current_version_hash: versionHash, updated_at: new Date().toISOString() })
+    .eq("id", storyId);
 
-  return { version };
+  return { version: toCamelCase(version) };
 }
 
 export async function getStoryVersion(storyId: string, versionHash: string) {
-  const [version] = await db
-    .select()
-    .from(storyVersions)
-    .where(
-      and(
-        eq(storyVersions.storyId, storyId),
-        eq(storyVersions.versionHash, versionHash)
-      )
-    )
-    .limit(1);
+  const { data, error } = await supabase
+    .from("story_versions")
+    .select("*")
+    .eq("story_id", storyId)
+    .eq("version_hash", versionHash)
+    .maybeSingle();
 
-  return version ?? null;
+  if (error) throw new Error(`Failed to get story version: ${error.message}`);
+  return data ? toCamelCase(data) : null;
 }
 
 export async function listStoryVersions(storyId: string) {
-  return db
-    .select()
-    .from(storyVersions)
-    .where(eq(storyVersions.storyId, storyId))
-    .orderBy(desc(storyVersions.versionNumber));
+  const { data, error } = await supabase
+    .from("story_versions")
+    .select("*")
+    .eq("story_id", storyId)
+    .order("version_number", { ascending: false });
+
+  if (error) throw new Error(`Failed to list story versions: ${error.message}`);
+  return mapRows(data ?? []);
 }
 
 // ── Approval ───────────────────────────────────────────
@@ -165,48 +176,47 @@ export async function createApproval(
   if (!version) return { error: "version_not_found" as const };
 
   // Check if version is already approved (immutability check)
-  const [existingApproval] = await db
-    .select()
-    .from(approvalRecords)
-    .where(
-      and(
-        eq(approvalRecords.storyId, storyId),
-        eq(approvalRecords.versionHash, input.versionHash),
-        eq(approvalRecords.decision, "approved")
-      )
-    )
-    .limit(1);
+  const { data: existingApproval } = await supabase
+    .from("approval_records")
+    .select("id")
+    .eq("story_id", storyId)
+    .eq("version_hash", input.versionHash)
+    .eq("decision", "approved")
+    .maybeSingle();
 
   if (existingApproval) {
     return { error: "already_approved" as const };
   }
 
-  const [record] = await db
-    .insert(approvalRecords)
-    .values({
-      storyId,
-      versionHash: input.versionHash,
-      approverId,
+  const { data: record, error } = await supabase
+    .from("approval_records")
+    .insert({
+      story_id: storyId,
+      version_hash: input.versionHash,
+      approver_id: approverId,
       decision: input.decision,
       notes: input.notes ?? null,
-      riskAcknowledgements: input.riskAcknowledgements,
+      risk_acknowledgements: input.riskAcknowledgements,
     })
-    .returning();
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to create approval: ${error.message}`);
 
   // Update story status based on decision
   if (input.decision === "approved") {
-    await db
-      .update(stories)
-      .set({ status: "approved", updatedAt: new Date() })
-      .where(eq(stories.id, storyId));
+    await supabase
+      .from("stories")
+      .update({ status: "approved", updated_at: new Date().toISOString() })
+      .eq("id", storyId);
   } else if (input.decision === "revision_requested") {
-    await db
-      .update(stories)
-      .set({ status: "draft", updatedAt: new Date() })
-      .where(eq(stories.id, storyId));
+    await supabase
+      .from("stories")
+      .update({ status: "draft", updated_at: new Date().toISOString() })
+      .eq("id", storyId);
   }
 
-  return { record };
+  return { record: toCamelCase(record) };
 }
 
 // ── Publishing (THE GATE) ──────────────────────────────
@@ -219,14 +229,14 @@ export type PublishError =
   | { type: "unacknowledged_risk_flags"; flags: string[] };
 
 export type PublishResult =
-  | { success: true; story: typeof stories.$inferSelect }
+  | { success: true; story: Record<string, unknown> }
   | { success: false; error: PublishError };
 
 export async function publishStory(
   storyId: string,
   input: PublishInput
 ): Promise<PublishResult> {
-  const story = await getStory(storyId);
+  const story = await getStory(storyId) as Record<string, unknown> | null;
   if (!story) {
     return { success: false, error: { type: "story_not_found" } };
   }
@@ -237,30 +247,26 @@ export async function publishStory(
       success: false,
       error: {
         type: "hash_mismatch",
-        expected: story.currentVersionHash ?? "none",
+        expected: (story.currentVersionHash as string) ?? "none",
         provided: input.versionHash,
       },
     };
   }
 
   // Get the version
-  const version = await getStoryVersion(storyId, input.versionHash);
+  const version = await getStoryVersion(storyId, input.versionHash) as Record<string, unknown> | null;
   if (!version) {
     return { success: false, error: { type: "version_not_found" } };
   }
 
   // CRITICAL INVARIANT: Verify ApprovalRecord exists for this exact versionHash
-  const [approval] = await db
-    .select()
-    .from(approvalRecords)
-    .where(
-      and(
-        eq(approvalRecords.storyId, storyId),
-        eq(approvalRecords.versionHash, input.versionHash),
-        eq(approvalRecords.decision, "approved")
-      )
-    )
-    .limit(1);
+  const { data: approval } = await supabase
+    .from("approval_records")
+    .select("*")
+    .eq("story_id", storyId)
+    .eq("version_hash", input.versionHash)
+    .eq("decision", "approved")
+    .maybeSingle();
 
   if (!approval) {
     return {
@@ -275,7 +281,7 @@ export async function publishStory(
   // Check risk flags: all must be acknowledged
   const riskFlags = (version.riskFlags ?? []) as { type: string }[];
   if (riskFlags.length > 0) {
-    const acknowledgements = (approval.riskAcknowledgements ?? []) as {
+    const acknowledgements = (approval.risk_acknowledgements ?? []) as {
       flagType: string;
       acknowledged: boolean;
     }[];
@@ -301,15 +307,17 @@ export async function publishStory(
   }
 
   // All checks passed — publish
-  const [published] = await db
-    .update(stories)
-    .set({
+  const { data: published, error } = await supabase
+    .from("stories")
+    .update({
       status: "published",
-      publishedAt: new Date(),
-      updatedAt: new Date(),
+      published_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     })
-    .where(eq(stories.id, storyId))
-    .returning();
+    .eq("id", storyId)
+    .select()
+    .single();
 
-  return { success: true, story: published };
+  if (error) throw new Error(`Failed to publish story: ${error.message}`);
+  return { success: true, story: toCamelCase(published) };
 }

@@ -1,21 +1,18 @@
-import { db } from "@/lib/db";
-import {
-  subscriptions,
-  userPreferences,
-} from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { supabase } from "@/lib/supabase/server";
+import { toCamelCase } from "@/lib/supabase/helpers";
 import type { UpdatePreferencesInput, CreateSubscriptionInput } from "@/lib/validators/subscriber";
 
 // ── Subscriptions ──────────────────────────────────────
 
 export async function getSubscription(userId: string) {
-  const [sub] = await db
-    .select()
-    .from(subscriptions)
-    .where(eq(subscriptions.userId, userId))
-    .limit(1);
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
 
-  return sub ?? null;
+  if (error) throw new Error(`Failed to get subscription: ${error.message}`);
+  return data ? toCamelCase(data) : null;
 }
 
 export async function createSubscription(
@@ -24,45 +21,51 @@ export async function createSubscription(
 ) {
   const existing = await getSubscription(userId);
   if (existing) {
-    // Update existing subscription
-    const [updated] = await db
-      .update(subscriptions)
-      .set({
+    const { data, error } = await supabase
+      .from("subscriptions")
+      .update({
         plan: input.plan,
-        isActive: true,
-        updatedAt: new Date(),
+        is_active: true,
+        updated_at: new Date().toISOString(),
       })
-      .where(eq(subscriptions.userId, userId))
-      .returning();
-    return updated;
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (error) throw new Error(`Failed to update subscription: ${error.message}`);
+    return toCamelCase(data);
   }
 
-  const [sub] = await db
-    .insert(subscriptions)
-    .values({
-      userId,
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .insert({
+      user_id: userId,
       plan: input.plan,
-      isActive: true,
+      is_active: true,
     })
-    .returning();
+    .select()
+    .single();
 
-  return sub;
+  if (error) throw new Error(`Failed to create subscription: ${error.message}`);
+  return toCamelCase(data);
 }
 
 export async function cancelSubscription(userId: string) {
-  const [updated] = await db
-    .update(subscriptions)
-    .set({ isActive: false, updatedAt: new Date() })
-    .where(eq(subscriptions.userId, userId))
-    .returning();
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .update({ is_active: false, updated_at: new Date().toISOString() })
+    .eq("user_id", userId)
+    .select()
+    .single();
 
-  return updated ?? null;
+  if (error) return null;
+  return data ? toCamelCase(data) : null;
 }
 
 export async function hasActiveSubscription(userId: string): Promise<boolean> {
-  const sub = await getSubscription(userId);
+  const sub = await getSubscription(userId) as Record<string, unknown> | null;
   if (!sub || !sub.isActive) return false;
-  if (sub.expiresAt && sub.expiresAt < new Date()) return false;
+  if (sub.expiresAt && new Date(sub.expiresAt as string) < new Date()) return false;
   return true;
 }
 
@@ -70,7 +73,7 @@ export async function hasEntitlement(
   userId: string,
   requiredPlan: string
 ): Promise<boolean> {
-  const sub = await getSubscription(userId);
+  const sub = await getSubscription(userId) as Record<string, unknown> | null;
   if (!sub || !sub.isActive) return false;
 
   const planHierarchy: Record<string, number> = {
@@ -80,19 +83,20 @@ export async function hasEntitlement(
     enterprise: 3,
   };
 
-  return (planHierarchy[sub.plan] ?? 0) >= (planHierarchy[requiredPlan] ?? 0);
+  return (planHierarchy[sub.plan as string] ?? 0) >= (planHierarchy[requiredPlan] ?? 0);
 }
 
 // ── User Preferences ───────────────────────────────────
 
 export async function getPreferences(userId: string) {
-  const [prefs] = await db
-    .select()
-    .from(userPreferences)
-    .where(eq(userPreferences.userId, userId))
-    .limit(1);
+  const { data, error } = await supabase
+    .from("user_preferences")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
 
-  return prefs ?? null;
+  if (error) throw new Error(`Failed to get preferences: ${error.message}`);
+  return data ? toCamelCase(data) : null;
 }
 
 export async function updatePreferences(
@@ -102,63 +106,47 @@ export async function updatePreferences(
   const existing = await getPreferences(userId);
 
   if (existing) {
-    const [updated] = await db
-      .update(userPreferences)
-      .set({
-        ...(input.followedTopics !== undefined && {
-          followedTopics: input.followedTopics,
-        }),
-        ...(input.mutedTopics !== undefined && {
-          mutedTopics: input.mutedTopics,
-        }),
-        ...(input.followedGeoAreas !== undefined && {
-          followedGeoAreas: input.followedGeoAreas,
-        }),
-        ...(input.digestFrequency !== undefined && {
-          digestFrequency: input.digestFrequency,
-        }),
-        ...(input.quietHoursStart !== undefined && {
-          quietHoursStart: input.quietHoursStart,
-        }),
-        ...(input.quietHoursEnd !== undefined && {
-          quietHoursEnd: input.quietHoursEnd,
-        }),
-        ...(input.quietHoursTimezone !== undefined && {
-          quietHoursTimezone: input.quietHoursTimezone,
-        }),
-        ...(input.maxNotificationsPerDay !== undefined && {
-          maxNotificationsPerDay: input.maxNotificationsPerDay,
-        }),
-        ...(input.emailNotifications !== undefined && {
-          emailNotifications: input.emailNotifications,
-        }),
-        ...(input.pushNotifications !== undefined && {
-          pushNotifications: input.pushNotifications,
-        }),
-        updatedAt: new Date(),
-      })
-      .where(eq(userPreferences.userId, userId))
-      .returning();
+    const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (input.followedTopics !== undefined) updateData.followed_topics = input.followedTopics;
+    if (input.mutedTopics !== undefined) updateData.muted_topics = input.mutedTopics;
+    if (input.followedGeoAreas !== undefined) updateData.followed_geo_areas = input.followedGeoAreas;
+    if (input.digestFrequency !== undefined) updateData.digest_frequency = input.digestFrequency;
+    if (input.quietHoursStart !== undefined) updateData.quiet_hours_start = input.quietHoursStart;
+    if (input.quietHoursEnd !== undefined) updateData.quiet_hours_end = input.quietHoursEnd;
+    if (input.quietHoursTimezone !== undefined) updateData.quiet_hours_timezone = input.quietHoursTimezone;
+    if (input.maxNotificationsPerDay !== undefined) updateData.max_notifications_per_day = input.maxNotificationsPerDay;
+    if (input.emailNotifications !== undefined) updateData.email_notifications = input.emailNotifications;
+    if (input.pushNotifications !== undefined) updateData.push_notifications = input.pushNotifications;
 
-    return updated;
+    const { data, error } = await supabase
+      .from("user_preferences")
+      .update(updateData)
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (error) throw new Error(`Failed to update preferences: ${error.message}`);
+    return toCamelCase(data);
   }
 
-  const [created] = await db
-    .insert(userPreferences)
-    .values({
-      userId,
-      followedTopics: input.followedTopics ?? [],
-      mutedTopics: input.mutedTopics ?? [],
-      followedGeoAreas: input.followedGeoAreas ?? [],
-      digestFrequency: input.digestFrequency ?? "daily",
-      quietHoursStart: input.quietHoursStart ?? null,
-      quietHoursEnd: input.quietHoursEnd ?? null,
-      quietHoursTimezone: input.quietHoursTimezone ?? "Asia/Tokyo",
-      maxNotificationsPerDay: input.maxNotificationsPerDay ?? 10,
-      emailNotifications: input.emailNotifications ?? true,
-      pushNotifications: input.pushNotifications ?? true,
+  const { data, error } = await supabase
+    .from("user_preferences")
+    .insert({
+      user_id: userId,
+      followed_topics: input.followedTopics ?? [],
+      muted_topics: input.mutedTopics ?? [],
+      followed_geo_areas: input.followedGeoAreas ?? [],
+      digest_frequency: input.digestFrequency ?? "daily",
+      quiet_hours_start: input.quietHoursStart ?? null,
+      quiet_hours_end: input.quietHoursEnd ?? null,
+      quiet_hours_timezone: input.quietHoursTimezone ?? "Asia/Tokyo",
+      max_notifications_per_day: input.maxNotificationsPerDay ?? 10,
+      email_notifications: input.emailNotifications ?? true,
+      push_notifications: input.pushNotifications ?? true,
     })
-    .returning();
+    .select()
+    .single();
 
-  return created;
+  if (error) throw new Error(`Failed to create preferences: ${error.message}`);
+  return toCamelCase(data);
 }

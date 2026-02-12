@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { stories, storyVersions } from "@/lib/db/schema";
-import { eq, and, desc, lt, inArray } from "drizzle-orm";
+import { supabase } from "@/lib/supabase/server";
 
 const PAGE_SIZE = 10;
 
@@ -13,37 +11,30 @@ export async function GET(req: NextRequest) {
   const mutedTopicsParam = url.searchParams.get("mutedTopics");
   const mutedTopics = mutedTopicsParam ? mutedTopicsParam.split(",") : [];
 
-  // Build conditions: only published stories
-  const conditions = [eq(stories.status, "published")];
+  // Build query: only published stories
+  let query = supabase
+    .from("stories")
+    .select("id, slug, headline, summary, topic_tags, geo_tags, published_at, is_gated, current_version_hash, author_id")
+    .eq("status", "published")
+    .order("published_at", { ascending: false })
+    .limit(PAGE_SIZE + 1);
 
   // Cursor-based pagination
   if (cursor) {
-    conditions.push(lt(stories.publishedAt, new Date(cursor)));
+    query = query.lt("published_at", cursor);
   }
 
-  // Fetch stories
-  let results = await db
-    .select({
-      id: stories.id,
-      slug: stories.slug,
-      headline: stories.headline,
-      summary: stories.summary,
-      topicTags: stories.topicTags,
-      geoTags: stories.geoTags,
-      publishedAt: stories.publishedAt,
-      isGated: stories.isGated,
-      currentVersionHash: stories.currentVersionHash,
-      authorId: stories.authorId,
-    })
-    .from(stories)
-    .where(and(...conditions))
-    .orderBy(desc(stories.publishedAt))
-    .limit(PAGE_SIZE + 1);
+  const { data: rawResults, error } = await query;
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  let results = rawResults ?? [];
 
   // Apply topic filter (post-query since JSONB)
   if (topic) {
     results = results.filter((s) =>
-      (s.topicTags as string[])?.some(
+      (s.topic_tags as string[])?.some(
         (t) => t.toLowerCase() === topic.toLowerCase()
       )
     );
@@ -52,7 +43,7 @@ export async function GET(req: NextRequest) {
   // Apply geo filter
   if (geo) {
     results = results.filter((s) =>
-      (s.geoTags as string[])?.some(
+      (s.geo_tags as string[])?.some(
         (g) => g.toLowerCase() === geo.toLowerCase()
       )
     );
@@ -62,7 +53,7 @@ export async function GET(req: NextRequest) {
   if (mutedTopics.length > 0) {
     results = results.filter(
       (s) =>
-        !(s.topicTags as string[])?.some((t) =>
+        !(s.topic_tags as string[])?.some((t) =>
           mutedTopics.includes(t.toLowerCase())
         )
     );
@@ -71,33 +62,42 @@ export async function GET(req: NextRequest) {
   const hasMore = results.length > PAGE_SIZE;
   const items = hasMore ? results.slice(0, PAGE_SIZE) : results;
   const nextCursor = hasMore
-    ? items[items.length - 1]?.publishedAt?.toISOString()
+    ? items[items.length - 1]?.published_at
     : null;
 
   // Fetch content blocks for each story's current version
   const versionHashes = items
-    .map((s) => s.currentVersionHash)
+    .map((s) => s.current_version_hash)
     .filter(Boolean) as string[];
 
   let versionMap: Record<string, unknown> = {};
   if (versionHashes.length > 0) {
-    const versions = await db
-      .select({
-        versionHash: storyVersions.versionHash,
-        contentBlocks: storyVersions.contentBlocks,
-      })
-      .from(storyVersions)
-      .where(inArray(storyVersions.versionHash, versionHashes));
+    const { data: versions } = await supabase
+      .from("story_versions")
+      .select("version_hash, content_blocks")
+      .in("version_hash", versionHashes);
 
-    versionMap = Object.fromEntries(
-      versions.map((v) => [v.versionHash, v.contentBlocks])
-    );
+    if (versions) {
+      versionMap = Object.fromEntries(
+        versions.map((v) => [v.version_hash, v.content_blocks])
+      );
+    }
   }
 
+  // Map to camelCase for frontend consumption
   const feedItems = items.map((story) => ({
-    ...story,
-    contentBlocks: story.currentVersionHash
-      ? versionMap[story.currentVersionHash] ?? []
+    id: story.id,
+    slug: story.slug,
+    headline: story.headline,
+    summary: story.summary,
+    topicTags: story.topic_tags,
+    geoTags: story.geo_tags,
+    publishedAt: story.published_at,
+    isGated: story.is_gated,
+    currentVersionHash: story.current_version_hash,
+    authorId: story.author_id,
+    contentBlocks: story.current_version_hash
+      ? versionMap[story.current_version_hash] ?? []
       : [],
   }));
 

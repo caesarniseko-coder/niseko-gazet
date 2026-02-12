@@ -1,56 +1,61 @@
-import { db } from "@/lib/db";
-import { fieldNotes } from "@/lib/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { supabase } from "@/lib/supabase/server";
+import { toCamelCase, mapRows } from "@/lib/supabase/helpers";
 import type { CreateFieldNoteInput, UpdateFieldNoteInput } from "@/lib/validators/field-note";
 
 export async function createFieldNote(
   authorId: string,
   input: CreateFieldNoteInput
 ) {
-  const [note] = await db
-    .insert(fieldNotes)
-    .values({
-      authorId,
+  const { data, error } = await supabase
+    .from("field_notes")
+    .insert({
+      author_id: authorId,
       who: input.who ?? null,
       what: input.what,
-      whenOccurred: input.whenOccurred ? new Date(input.whenOccurred) : null,
-      whereLocation: input.whereLocation ?? null,
+      when_occurred: input.whenOccurred ?? null,
+      where_location: input.whereLocation ?? null,
       why: input.why ?? null,
       how: input.how ?? null,
       quotes: input.quotes,
       contacts: input.contacts,
-      evidenceRefs: input.evidenceRefs,
-      confidenceScore: input.confidenceScore,
-      safetyLegalFlags: input.safetyLegalFlags,
-      geoLat: input.geoLat ?? null,
-      geoLng: input.geoLng ?? null,
-      rawText: input.rawText ?? null,
+      evidence_refs: input.evidenceRefs,
+      confidence_score: input.confidenceScore,
+      safety_legal_flags: input.safetyLegalFlags,
+      geo_lat: input.geoLat ?? null,
+      geo_lng: input.geoLng ?? null,
+      raw_text: input.rawText ?? null,
     })
-    .returning();
+    .select()
+    .single();
 
-  return note;
+  if (error) throw new Error(`Failed to create field note: ${error.message}`);
+  return toCamelCase(data);
 }
 
 export async function getFieldNote(id: string) {
-  const [note] = await db
-    .select()
-    .from(fieldNotes)
-    .where(eq(fieldNotes.id, id))
-    .limit(1);
+  const { data, error } = await supabase
+    .from("field_notes")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
 
-  return note ?? null;
+  if (error) throw new Error(`Failed to get field note: ${error.message}`);
+  return data ? toCamelCase(data) : null;
 }
 
 export async function listFieldNotes(authorId?: string) {
-  const query = db.select().from(fieldNotes);
+  let query = supabase
+    .from("field_notes")
+    .select("*")
+    .order("created_at", { ascending: false });
 
   if (authorId) {
-    return query
-      .where(eq(fieldNotes.authorId, authorId))
-      .orderBy(desc(fieldNotes.createdAt));
+    query = query.eq("author_id", authorId);
   }
 
-  return query.orderBy(desc(fieldNotes.createdAt));
+  const { data, error } = await query;
+  if (error) throw new Error(`Failed to list field notes: ${error.message}`);
+  return mapRows(data ?? []);
 }
 
 export async function updateFieldNote(
@@ -58,59 +63,60 @@ export async function updateFieldNote(
   authorId: string,
   input: UpdateFieldNoteInput
 ) {
-  const [existing] = await db
-    .select()
-    .from(fieldNotes)
-    .where(and(eq(fieldNotes.id, id), eq(fieldNotes.authorId, authorId)))
-    .limit(1);
+  // Check ownership
+  const { data: existing } = await supabase
+    .from("field_notes")
+    .select("id")
+    .eq("id", id)
+    .eq("author_id", authorId)
+    .maybeSingle();
 
   if (!existing) return null;
 
-  const [updated] = await db
-    .update(fieldNotes)
-    .set({
-      ...(input.who !== undefined && { who: input.who }),
-      ...(input.what !== undefined && { what: input.what }),
-      ...(input.whenOccurred !== undefined && {
-        whenOccurred: input.whenOccurred ? new Date(input.whenOccurred) : null,
-      }),
-      ...(input.whereLocation !== undefined && {
-        whereLocation: input.whereLocation,
-      }),
-      ...(input.why !== undefined && { why: input.why }),
-      ...(input.how !== undefined && { how: input.how }),
-      ...(input.quotes !== undefined && { quotes: input.quotes }),
-      ...(input.contacts !== undefined && { contacts: input.contacts }),
-      ...(input.evidenceRefs !== undefined && {
-        evidenceRefs: input.evidenceRefs,
-      }),
-      ...(input.confidenceScore !== undefined && {
-        confidenceScore: input.confidenceScore,
-      }),
-      ...(input.safetyLegalFlags !== undefined && {
-        safetyLegalFlags: input.safetyLegalFlags,
-      }),
-      ...(input.status !== undefined && { status: input.status }),
-      ...(input.geoLat !== undefined && { geoLat: input.geoLat }),
-      ...(input.geoLng !== undefined && { geoLng: input.geoLng }),
-      ...(input.rawText !== undefined && { rawText: input.rawText }),
-      updatedAt: new Date(),
-    })
-    .where(eq(fieldNotes.id, id))
-    .returning();
+  const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (input.who !== undefined) updateData.who = input.who;
+  if (input.what !== undefined) updateData.what = input.what;
+  if (input.whenOccurred !== undefined) updateData.when_occurred = input.whenOccurred;
+  if (input.whereLocation !== undefined) updateData.where_location = input.whereLocation;
+  if (input.why !== undefined) updateData.why = input.why;
+  if (input.how !== undefined) updateData.how = input.how;
+  if (input.quotes !== undefined) updateData.quotes = input.quotes;
+  if (input.contacts !== undefined) updateData.contacts = input.contacts;
+  if (input.evidenceRefs !== undefined) updateData.evidence_refs = input.evidenceRefs;
+  if (input.confidenceScore !== undefined) updateData.confidence_score = input.confidenceScore;
+  if (input.safetyLegalFlags !== undefined) updateData.safety_legal_flags = input.safetyLegalFlags;
+  if (input.status !== undefined) updateData.status = input.status;
+  if (input.geoLat !== undefined) updateData.geo_lat = input.geoLat;
+  if (input.geoLng !== undefined) updateData.geo_lng = input.geoLng;
+  if (input.rawText !== undefined) updateData.raw_text = input.rawText;
 
-  return updated;
+  const { data, error } = await supabase
+    .from("field_notes")
+    .update(updateData)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to update field note: ${error.message}`);
+  return toCamelCase(data);
 }
 
 export async function deleteFieldNote(id: string, authorId: string) {
-  const [existing] = await db
-    .select()
-    .from(fieldNotes)
-    .where(and(eq(fieldNotes.id, id), eq(fieldNotes.authorId, authorId)))
-    .limit(1);
+  // Check ownership
+  const { data: existing } = await supabase
+    .from("field_notes")
+    .select("id")
+    .eq("id", id)
+    .eq("author_id", authorId)
+    .maybeSingle();
 
   if (!existing) return false;
 
-  await db.delete(fieldNotes).where(eq(fieldNotes.id, id));
+  const { error } = await supabase
+    .from("field_notes")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw new Error(`Failed to delete field note: ${error.message}`);
   return true;
 }

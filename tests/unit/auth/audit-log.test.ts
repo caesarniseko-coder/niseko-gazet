@@ -1,4 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+vi.mock("@/lib/supabase/server", () => ({
+  supabase: {
+    from: () => ({
+      insert: () => ({ select: () => ({ single: () => Promise.resolve({ data: { id: "mock-id" }, error: null }) }) }),
+    }),
+  },
+}));
+
 import { extractRequestMeta } from "@/lib/utils/audit-log";
 
 describe("extractRequestMeta", () => {

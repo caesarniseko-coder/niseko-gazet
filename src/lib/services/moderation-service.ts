@@ -1,28 +1,30 @@
-import { db } from "@/lib/db";
-import { moderationQueue } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { supabase } from "@/lib/supabase/server";
+import { toCamelCase, mapRows } from "@/lib/supabase/helpers";
 
 export async function listModerationItems(status?: string) {
+  let query = supabase
+    .from("moderation_queue")
+    .select("*")
+    .order("created_at", { ascending: false });
+
   if (status) {
-    return db
-      .select()
-      .from(moderationQueue)
-      .where(eq(moderationQueue.status, status as "pending" | "approved" | "rejected" | "escalated"))
-      .orderBy(desc(moderationQueue.createdAt));
+    query = query.eq("status", status);
   }
-  return db
-    .select()
-    .from(moderationQueue)
-    .orderBy(desc(moderationQueue.createdAt));
+
+  const { data, error } = await query;
+  if (error) throw new Error(`Failed to list moderation items: ${error.message}`);
+  return mapRows(data ?? []);
 }
 
 export async function getModerationItem(id: string) {
-  const [item] = await db
-    .select()
-    .from(moderationQueue)
-    .where(eq(moderationQueue.id, id))
-    .limit(1);
-  return item ?? null;
+  const { data, error } = await supabase
+    .from("moderation_queue")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw new Error(`Failed to get moderation item: ${error.message}`);
+  return data ? toCamelCase(data) : null;
 }
 
 export async function reviewModerationItem(
@@ -31,16 +33,18 @@ export async function reviewModerationItem(
   decision: "approved" | "rejected" | "escalated",
   notes?: string
 ) {
-  const [updated] = await db
-    .update(moderationQueue)
-    .set({
+  const { data, error } = await supabase
+    .from("moderation_queue")
+    .update({
       status: decision,
-      reviewedBy: reviewerId,
-      reviewNotes: notes ?? null,
-      reviewedAt: new Date(),
+      reviewed_by: reviewerId,
+      review_notes: notes ?? null,
+      reviewed_at: new Date().toISOString(),
     })
-    .where(eq(moderationQueue.id, id))
-    .returning();
+    .eq("id", id)
+    .select()
+    .single();
 
-  return updated ?? null;
+  if (error) throw new Error(`Failed to review moderation item: ${error.message}`);
+  return data ? toCamelCase(data) : null;
 }
