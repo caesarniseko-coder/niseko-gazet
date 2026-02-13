@@ -56,6 +56,28 @@ Valid geo_tags: niseko, hirafu, annupuri, hanazono, moiwa, kutchan, rusutsu, nis
 Valid priorities: breaking, high, normal, low"""
 
 
+CLASSIFY_BATCH_PROMPT = """Classify these {count} articles for Niseko Gazet relevance.
+Return a JSON array with one object per article, in the same order.
+
+ARTICLES:
+{articles_block}
+
+Respond with ONLY a JSON array of {count} objects, each with this format:
+{{
+  "relevance_score": 0.0,
+  "topics": ["topic1"],
+  "geo_tags": ["area1"],
+  "priority": "normal",
+  "reasoning": "Brief explanation"
+}}
+
+Valid topics: tourism, snow_conditions, local_government, business, events, infrastructure, environment, safety, culture, sports, real_estate, food_dining, transport, education, health
+
+Valid geo_tags: niseko, hirafu, annupuri, hanazono, moiwa, kutchan, rusutsu, niseko_town, rankoshi, kimobetsu, makkari, kyogoku, shiribeshi, yotei, hokkaido
+
+Valid priorities: breaking, high, normal, low"""
+
+
 # ── Enrichment (5W1H) ────────────────────────────────
 
 ENRICH_SYSTEM = """You are Haystack, an AI news enrichment engine for Niseko Gazet.
