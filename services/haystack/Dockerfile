@@ -1,0 +1,22 @@
+FROM python:3.12-slim AS base
+
+WORKDIR /app
+
+# Install system deps for lxml and other C extensions
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libxml2-dev \
+    libxslt1-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD python -c "import httpx; r = httpx.get('http://localhost:${HAYSTACK_PORT:-8001}/health'); r.raise_for_status()"
+
+EXPOSE ${HAYSTACK_PORT:-8001}
+
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "1"]

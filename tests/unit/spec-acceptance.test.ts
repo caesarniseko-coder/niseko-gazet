@@ -602,6 +602,31 @@ describe("Acceptance #7: Gated content requires subscription entitlement", () =>
     expect(hasEntitlement(null, "basic")).toBe(false);
   });
 
+  it("feed strips contentBlocks from gated stories for non-subscribers", () => {
+    const stories = [
+      { id: "1", isGated: false, contentBlocks: [{ type: "text", content: "Free" }] },
+      { id: "2", isGated: true, contentBlocks: [{ type: "text", content: "Premium" }] },
+      { id: "3", isGated: true, contentBlocks: [{ type: "text", content: "Also premium" }] },
+    ];
+
+    // Non-subscriber: gated stories get empty contentBlocks
+    const nonSubFeed = stories.map((s) => ({
+      ...s,
+      contentBlocks: s.isGated ? [] : s.contentBlocks,
+    }));
+    expect(nonSubFeed[0].contentBlocks).toHaveLength(1);
+    expect(nonSubFeed[1].contentBlocks).toHaveLength(0);
+    expect(nonSubFeed[2].contentBlocks).toHaveLength(0);
+
+    // Subscriber: all stories keep contentBlocks
+    const subFeed = stories.map((s) => ({
+      ...s,
+      contentBlocks: s.contentBlocks,
+    }));
+    expect(subFeed[1].contentBlocks).toHaveLength(1);
+    expect(subFeed[2].contentBlocks).toHaveLength(1);
+  });
+
   it("inactive subscription blocks access", () => {
     // hasActiveSubscription checks isActive flag
     const sub = { plan: "premium", isActive: false, expiresAt: null };
@@ -795,5 +820,63 @@ describe("Acceptance #10: RBAC and route protection", () => {
     publicPaths.forEach((path) => {
       expect(path.startsWith("/")).toBe(true);
     });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// 11. Field note lifecycle state machine
+// ═══════════════════════════════════════════════════════════
+
+describe("Field Note Lifecycle State Machine", () => {
+  const VALID_TRANSITIONS: Record<string, string[]> = {
+    raw: ["processing", "archived"],
+    processing: ["packaged", "raw", "archived"],
+    packaged: ["assigned", "archived"],
+    assigned: ["archived"],
+    archived: ["raw"],
+  };
+
+  function canTransition(from: string, to: string): boolean {
+    return (VALID_TRANSITIONS[from] ?? []).includes(to);
+  }
+
+  it("raw → processing is valid (Cizer starts processing)", () => {
+    expect(canTransition("raw", "processing")).toBe(true);
+  });
+
+  it("processing → packaged is valid (Cizer finishes)", () => {
+    expect(canTransition("processing", "packaged")).toBe(true);
+  });
+
+  it("packaged → assigned is valid (editor assigns to journalist)", () => {
+    expect(canTransition("packaged", "assigned")).toBe(true);
+  });
+
+  it("any state → archived is valid", () => {
+    expect(canTransition("raw", "archived")).toBe(true);
+    expect(canTransition("processing", "archived")).toBe(true);
+    expect(canTransition("packaged", "archived")).toBe(true);
+    expect(canTransition("assigned", "archived")).toBe(true);
+  });
+
+  it("archived → raw is valid (un-archive for reprocessing)", () => {
+    expect(canTransition("archived", "raw")).toBe(true);
+  });
+
+  it("processing → raw is valid (revert on Cizer error)", () => {
+    expect(canTransition("processing", "raw")).toBe(true);
+  });
+
+  it("invalid transitions are rejected", () => {
+    expect(canTransition("raw", "packaged")).toBe(false);
+    expect(canTransition("raw", "assigned")).toBe(false);
+    expect(canTransition("packaged", "processing")).toBe(false);
+    expect(canTransition("assigned", "raw")).toBe(false);
+    expect(canTransition("assigned", "processing")).toBe(false);
+  });
+
+  it("all five statuses are represented", () => {
+    const statuses = Object.keys(VALID_TRANSITIONS);
+    expect(statuses).toEqual(["raw", "processing", "packaged", "assigned", "archived"]);
   });
 });

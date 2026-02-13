@@ -77,7 +77,7 @@ describe("requireUser", () => {
       user: {
         id: "user-1",
         role: "admin",
-        name: "Admin",
+        name: "Caesar",
         email: "admin@test.com",
       },
     } as any);

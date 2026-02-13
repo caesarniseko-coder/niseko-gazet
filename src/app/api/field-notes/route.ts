@@ -3,9 +3,18 @@ import { withAuth } from "@/lib/auth/rbac";
 import { createFieldNote, listFieldNotes } from "@/lib/services/field-note-service";
 import { createFieldNoteSchema } from "@/lib/validators/field-note";
 import { createAuditEntry, extractRequestMeta } from "@/lib/utils/audit-log";
+import { hasRole } from "@/lib/auth/rbac";
+import type { UserRole } from "@/types/enums";
 
 export const GET = withAuth(async (req, { session }) => {
-  const notes = await listFieldNotes(session.user.id);
+  const url = new URL(req.url);
+  const status = url.searchParams.get("status") ?? undefined;
+
+  // Editors+ see all field notes; journalists see only their own
+  const isEditor = hasRole(session.user.role as UserRole, "editor");
+  const authorId = isEditor ? undefined : session.user.id;
+
+  const notes = await listFieldNotes({ authorId, status });
   return NextResponse.json(notes);
 }, ["journalist", "editor", "admin"]);
 

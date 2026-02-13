@@ -4,6 +4,7 @@ import { generateVersionHash } from "@/lib/utils/version-hash";
 import { uniqueSlug } from "@/lib/utils/slug";
 import type { CreateStoryInput, UpdateStoryInput, CreateStoryVersionInput } from "@/lib/validators/story";
 import type { CreateApprovalInput, PublishInput } from "@/lib/validators/approval";
+import { orchestrateDelivery } from "./delivery-service";
 
 // ── Story CRUD ─────────────────────────────────────────
 
@@ -319,5 +320,11 @@ export async function publishStory(
     .single();
 
   if (error) throw new Error(`Failed to publish story: ${error.message}`);
+
+  // Orchestrate delivery to subscribers (fire-and-forget — don't block publish response)
+  orchestrateDelivery(storyId, input.versionHash).catch(() => {
+    // Delivery failures are logged in delivery_logs, not surfaced to publisher
+  });
+
   return { success: true, story: toCamelCase(published) };
 }

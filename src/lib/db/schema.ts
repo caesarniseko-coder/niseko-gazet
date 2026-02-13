@@ -8,6 +8,7 @@ import {
   timestamp,
   jsonb,
   uuid,
+  real,
   uniqueIndex,
   index,
 } from "drizzle-orm/pg-core";
@@ -379,6 +380,112 @@ export const moderationQueue = pgTable(
   (table) => [
     index("moderation_queue_status_idx").on(table.status),
     index("moderation_queue_type_idx").on(table.type),
+  ]
+);
+
+// ── HAYSTACK: SOURCE FEEDS ────────────────────────────────
+
+export const sourceTypeEnum = pgEnum("source_type", [
+  "rss",
+  "scrape",
+  "api",
+  "social",
+  "tip",
+]);
+
+export const reliabilityTierEnum = pgEnum("reliability_tier", [
+  "official",
+  "standard",
+  "yellow_press",
+]);
+
+export const sourceFeeds = pgTable(
+  "source_feeds",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: varchar("name", { length: 255 }).notNull(),
+    sourceType: sourceTypeEnum("source_type").notNull(),
+    url: text("url").notNull(),
+    config: jsonb("config").$type<Record<string, unknown>>().default({}),
+    pollIntervalMinutes: integer("poll_interval_minutes").default(15),
+    isActive: boolean("is_active").default(true),
+    reliabilityTier: reliabilityTierEnum("reliability_tier")
+      .notNull()
+      .default("standard"),
+    defaultTopics: jsonb("default_topics").$type<string[]>().default([]),
+    defaultGeoTags: jsonb("default_geo_tags").$type<string[]>().default([]),
+    lastFetchedAt: timestamp("last_fetched_at", { withTimezone: true }),
+    lastError: text("last_error"),
+    reliabilityScore: real("reliability_score").default(50.0),
+    consecutiveErrors: integer("consecutive_errors").default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("source_feeds_type_idx").on(table.sourceType),
+    index("source_feeds_active_idx").on(table.isActive),
+  ]
+);
+
+// ── HAYSTACK: CRAWL HISTORY ──────────────────────────────
+
+export const crawlHistory = pgTable(
+  "crawl_history",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sourceFeedId: uuid("source_feed_id")
+      .notNull()
+      .references(() => sourceFeeds.id),
+    sourceUrl: text("source_url").notNull(),
+    contentFingerprint: varchar("content_fingerprint", { length: 32 })
+      .notNull(),
+    pipelineRunId: uuid("pipeline_run_id"),
+    rawData: jsonb("raw_data").$type<Record<string, unknown>>().default({}),
+    status: varchar("status", { length: 20 }).notNull().default("processed"),
+    relevanceScore: jsonb("relevance_score").$type<number>(),
+    wasRelevant: boolean("was_relevant").default(false),
+    wasDuplicate: boolean("was_duplicate").default(false),
+    classificationData: jsonb("classification_data").$type<
+      Record<string, unknown>
+    >(),
+    fieldNoteId: uuid("field_note_id").references(() => fieldNotes.id),
+    moderationItemId: uuid("moderation_item_id"),
+    errorMessage: text("error_message"),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("crawl_history_fingerprint_idx").on(table.contentFingerprint),
+    index("crawl_history_source_url_idx").on(table.sourceUrl),
+    index("crawl_history_run_idx").on(table.pipelineRunId),
+    index("crawl_history_source_feed_idx").on(table.sourceFeedId),
+  ]
+);
+
+// ── HAYSTACK: PIPELINE RUNS ─────────────────────────────
+
+export const pipelineRuns = pgTable(
+  "pipeline_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    runType: varchar("run_type", { length: 20 }).notNull(),
+    status: varchar("status", { length: 20 }).notNull().default("running"),
+    startedAt: timestamp("started_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    stats: jsonb("stats").$type<Record<string, unknown>>().default({}),
+    errors: jsonb("errors").$type<Record<string, unknown>[]>().default([]),
+    sourcesPolled: jsonb("sources_polled").$type<string[]>().default([]),
+  },
+  (table) => [
+    index("pipeline_runs_status_idx").on(table.status),
+    index("pipeline_runs_started_idx").on(table.startedAt),
   ]
 );
 

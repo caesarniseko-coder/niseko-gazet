@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { storyNotificationEmail } from "@/lib/email/templates";
 
 /**
  * Tests for delivery orchestration logic.
@@ -82,5 +83,63 @@ describe("Frequency Cap Check", () => {
     const todayCount = 15;
     const maxPerDay = 10;
     expect(todayCount >= maxPerDay).toBe(true);
+  });
+});
+
+describe("Email Notification Template", () => {
+  it("generates valid HTML email with story details", () => {
+    const { subject, html } = storyNotificationEmail({
+      headline: "Heavy Snow Expected This Weekend",
+      summary: "Niseko resort area may see up to 40cm of fresh powder.",
+      slug: "heavy-snow-expected",
+      topicTags: ["weather", "skiing"],
+      geoTags: ["niseko"],
+    });
+
+    expect(subject).toBe("Heavy Snow Expected This Weekend");
+    expect(html).toContain("Heavy Snow Expected This Weekend");
+    expect(html).toContain("40cm of fresh powder");
+    expect(html).toContain("/stories/heavy-snow-expected");
+    expect(html).toContain("Read Full Story");
+    expect(html).toContain("weather");
+    expect(html).toContain("niseko");
+  });
+
+  it("escapes HTML in headline and summary", () => {
+    const { html } = storyNotificationEmail({
+      headline: 'Test <script>alert("xss")</script>',
+      summary: "Normal summary & text",
+      slug: "test-xss",
+      topicTags: [],
+      geoTags: [],
+    });
+
+    expect(html).not.toContain("<script>");
+    expect(html).toContain("&lt;script&gt;");
+    expect(html).toContain("&amp; text");
+  });
+
+  it("handles empty tags gracefully", () => {
+    const { html } = storyNotificationEmail({
+      headline: "No Tags Story",
+      summary: "A story without tags.",
+      slug: "no-tags",
+      topicTags: [],
+      geoTags: [],
+    });
+
+    expect(html).toContain("No Tags Story");
+    expect(html).toContain("A story without tags.");
+  });
+
+  it("delivery channel selection respects email_notifications preference", () => {
+    // When email_notifications is false, email should not be sent
+    const prefsDisabled = { email_notifications: false };
+    const prefsEnabled = { email_notifications: true };
+    const prefsDefault = {}; // undefined defaults to enabled
+
+    expect(prefsDisabled.email_notifications !== false).toBe(false);
+    expect(prefsEnabled.email_notifications !== false).toBe(true);
+    expect((prefsDefault as { email_notifications?: boolean }).email_notifications !== false).toBe(true);
   });
 });

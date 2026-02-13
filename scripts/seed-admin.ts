@@ -3,9 +3,9 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "admin@niseko-gazet.com";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "changeme123";
-const ADMIN_NAME = process.env.ADMIN_NAME ?? "Admin";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "caesarniseko@gmail.com";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "the1898Niseko";
+const ADMIN_NAME = process.env.ADMIN_NAME ?? "Caesar";
 
 async function seed() {
   console.log(`Seeding admin user: ${ADMIN_EMAIL}`);

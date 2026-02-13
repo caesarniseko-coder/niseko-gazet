@@ -1,5 +1,7 @@
 import { supabase } from "@/lib/supabase/server";
 import { mapRows } from "@/lib/supabase/helpers";
+import { sendEmail } from "@/lib/email/client";
+import { storyNotificationEmail } from "@/lib/email/templates";
 
 type DeliveryEntry = {
   userId: string;
@@ -13,6 +15,7 @@ type DeliveryEntry = {
 /**
  * Orchestrate delivery of a published story to all eligible subscribers.
  * Checks entitlements, muted topics, quiet hours, and frequency caps.
+ * Delivers to both "feed" and "email" channels.
  */
 export async function orchestrateDelivery(
   storyId: string,
@@ -21,7 +24,7 @@ export async function orchestrateDelivery(
   // Get the story details
   const { data: story } = await supabase
     .from("stories")
-    .select("id, topic_tags")
+    .select("id, headline, summary, slug, topic_tags, geo_tags")
     .eq("id", storyId)
     .maybeSingle();
 
@@ -41,12 +44,19 @@ export async function orchestrateDelivery(
   const entries: DeliveryEntry[] = [];
 
   for (const subscriber of activeSubscribers) {
-    // Get user preferences
-    const { data: prefs } = await supabase
-      .from("user_preferences")
-      .select("*")
-      .eq("user_id", subscriber.user_id)
-      .maybeSingle();
+    // Get user preferences and email
+    const [{ data: prefs }, { data: user }] = await Promise.all([
+      supabase
+        .from("user_preferences")
+        .select("*")
+        .eq("user_id", subscriber.user_id)
+        .maybeSingle(),
+      supabase
+        .from("users")
+        .select("email")
+        .eq("id", subscriber.user_id)
+        .maybeSingle(),
+    ]);
 
     // Check muted topics
     const storyTopics = (story.topic_tags as string[]) ?? [];
@@ -130,6 +140,29 @@ export async function orchestrateDelivery(
       result: "delivered",
     });
     results.delivered++;
+
+    // Deliver to email (if enabled and user has email)
+    const emailEnabled = prefs?.email_notifications !== false;
+    if (emailEnabled && user?.email) {
+      const { subject, html } = storyNotificationEmail({
+        headline: story.headline ?? "New Story",
+        summary: story.summary ?? "",
+        slug: story.slug ?? storyId,
+        topicTags: storyTopics,
+        geoTags: (story.geo_tags as string[]) ?? [],
+      });
+
+      const emailResult = await sendEmail({ to: user.email, subject, html });
+
+      entries.push({
+        userId: subscriber.user_id,
+        storyId,
+        versionHash,
+        channel: "email",
+        result: emailResult.success ? "delivered" : "failed",
+        errorMessage: emailResult.error,
+      });
+    }
   }
 
   // Batch insert delivery logs

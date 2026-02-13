@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/server";
+import { auth } from "@/lib/auth/config";
+import { hasActiveSubscription } from "@/lib/services/subscriber-service";
 
 const PAGE_SIZE = 10;
 
@@ -84,22 +86,34 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // Check subscription for gated content enforcement
+  const session = await auth();
+  const isSubscriber = session?.user?.id
+    ? await hasActiveSubscription(session.user.id)
+    : false;
+
   // Map to camelCase for frontend consumption
-  const feedItems = items.map((story) => ({
-    id: story.id,
-    slug: story.slug,
-    headline: story.headline,
-    summary: story.summary,
-    topicTags: story.topic_tags,
-    geoTags: story.geo_tags,
-    publishedAt: story.published_at,
-    isGated: story.is_gated,
-    currentVersionHash: story.current_version_hash,
-    authorId: story.author_id,
-    contentBlocks: story.current_version_hash
-      ? versionMap[story.current_version_hash] ?? []
-      : [],
-  }));
+  // Gated stories: strip contentBlocks for non-subscribers (Critical Invariant #6)
+  const feedItems = items.map((story) => {
+    const gated = story.is_gated && !isSubscriber;
+    return {
+      id: story.id,
+      slug: story.slug,
+      headline: story.headline,
+      summary: story.summary,
+      topicTags: story.topic_tags,
+      geoTags: story.geo_tags,
+      publishedAt: story.published_at,
+      isGated: story.is_gated,
+      currentVersionHash: story.current_version_hash,
+      authorId: story.author_id,
+      contentBlocks: gated
+        ? []
+        : story.current_version_hash
+          ? versionMap[story.current_version_hash] ?? []
+          : [],
+    };
+  });
 
   return NextResponse.json({
     items: feedItems,

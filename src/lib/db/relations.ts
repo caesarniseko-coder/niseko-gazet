@@ -10,6 +10,9 @@ import {
   userPreferences,
   moderationQueue,
   auditLogs,
+  sourceFeeds,
+  crawlHistory,
+  pipelineRuns,
 } from "./schema";
 
 export const usersRelations = relations(users, ({ many, one }) => ({
@@ -119,5 +122,22 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
   actor: one(users, {
     fields: [auditLogs.actorId],
     references: [users.id],
+  }),
+}));
+
+// ── Haystack relations ───────────────────────────────────
+
+export const sourceFeedsRelations = relations(sourceFeeds, ({ many }) => ({
+  crawlHistory: many(crawlHistory),
+}));
+
+export const crawlHistoryRelations = relations(crawlHistory, ({ one }) => ({
+  sourceFeed: one(sourceFeeds, {
+    fields: [crawlHistory.sourceFeedId],
+    references: [sourceFeeds.id],
+  }),
+  fieldNote: one(fieldNotes, {
+    fields: [crawlHistory.fieldNoteId],
+    references: [fieldNotes.id],
   }),
 }));

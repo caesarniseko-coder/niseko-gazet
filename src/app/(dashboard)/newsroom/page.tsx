@@ -138,8 +138,11 @@ export default function NewsroomPage() {
           filtered.map((story, i) => {
             const cfg = STATUS_CONFIG[story.status] ?? STATUS_CONFIG.draft;
             return (
-              <motion.div
+              <Link
                 key={story.id}
+                href={`/stories/${story.id}`}
+              >
+              <motion.div
                 initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: i * 0.03 }}
@@ -183,6 +186,7 @@ export default function NewsroomPage() {
                   />
                 </svg>
               </motion.div>
+              </Link>
             );
           })
         )}

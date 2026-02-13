@@ -43,14 +43,20 @@ export async function getFieldNote(id: string) {
   return data ? toCamelCase(data) : null;
 }
 
-export async function listFieldNotes(authorId?: string) {
+export async function listFieldNotes(opts?: {
+  authorId?: string;
+  status?: string;
+}) {
   let query = supabase
     .from("field_notes")
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (authorId) {
-    query = query.eq("author_id", authorId);
+  if (opts?.authorId) {
+    query = query.eq("author_id", opts.authorId);
+  }
+  if (opts?.status) {
+    query = query.eq("status", opts.status);
   }
 
   const { data, error } = await query;
@@ -98,6 +104,48 @@ export async function updateFieldNote(
     .single();
 
   if (error) throw new Error(`Failed to update field note: ${error.message}`);
+  return toCamelCase(data);
+}
+
+/** Valid status transitions for field notes */
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  raw: ["processing", "archived"],
+  processing: ["packaged", "raw", "archived"],
+  packaged: ["assigned", "archived"],
+  assigned: ["archived"],
+  archived: ["raw"],
+};
+
+export async function transitionFieldNoteStatus(
+  id: string,
+  newStatus: string
+): Promise<Record<string, unknown> | null> {
+  const { data: note } = await supabase
+    .from("field_notes")
+    .select("id, status")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!note) return null;
+
+  const allowed = VALID_TRANSITIONS[note.status] ?? [];
+  if (!allowed.includes(newStatus)) {
+    throw new Error(
+      `Invalid transition: ${note.status} → ${newStatus}. Allowed: ${allowed.join(", ")}`
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("field_notes")
+    .update({
+      status: newStatus,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to transition field note: ${error.message}`);
   return toCamelCase(data);
 }
 

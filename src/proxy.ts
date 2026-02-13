@@ -9,6 +9,7 @@ const PUBLIC_PATHS = [
   "/feed",
   "/api/feed",
   "/api/tips",
+  "/api/migrate",  // Temporary: for Haystack DB migration
 ];
 
 function isPublicPath(pathname: string): boolean {

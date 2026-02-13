@@ -1,14 +1,18 @@
 "use client";
 
 import { useRef, useCallback, useEffect, useState } from "react";
+import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
 import { useFeed } from "@/hooks/use-feed";
 import { FeedCard } from "./feed-card";
 import { FeedFilters } from "./feed-filters";
 import { TipDialog } from "./tip-dialog";
 
 export function VO3Feed() {
+  const { data: session } = useSession();
   const [activeTopic, setActiveTopic] = useState("all");
   const [tipOpen, setTipOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const filters =
@@ -55,6 +59,7 @@ export function VO3Feed() {
               <button
                 onClick={() => setTipOpen(true)}
                 className="w-8 h-8 rounded-full bg-sunset/15 flex items-center justify-center hover:bg-sunset/25 transition-colors"
+                title="Submit a tip"
               >
                 <svg
                   className="w-3.5 h-3.5 text-sunset"
@@ -70,6 +75,59 @@ export function VO3Feed() {
                   />
                 </svg>
               </button>
+
+              {session?.user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="w-8 h-8 rounded-full bg-powder/20 flex items-center justify-center hover:bg-powder/30 transition-colors text-powder text-xs font-bold uppercase"
+                    title={session.user.name ?? "Account"}
+                  >
+                    {(session.user.name?.[0] ?? "U")}
+                  </button>
+                  {userMenuOpen && (
+                    <div className="absolute right-0 top-10 w-44 glass-panel rounded-xl border border-frost-border py-1 z-50">
+                      <div className="px-3 py-2 border-b border-frost-border">
+                        <p className="text-snow text-xs font-medium truncate">{session.user.name}</p>
+                        <p className="text-ice/40 text-[10px] truncate">{session.user.email}</p>
+                      </div>
+                      <Link
+                        href="/newsroom"
+                        className="block px-3 py-2 text-xs text-ice/70 hover:text-snow hover:bg-white/5 transition-colors"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        Newsroom
+                      </Link>
+                      <button
+                        onClick={() => signOut({ callbackUrl: "/feed" })}
+                        className="w-full text-left px-3 py-2 text-xs text-sunset/70 hover:text-sunset hover:bg-white/5 transition-colors"
+                      >
+                        Sign out
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
+                  title="Sign in"
+                >
+                  <svg
+                    className="w-3.5 h-3.5 text-ice/50"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                    />
+                  </svg>
+                </Link>
+              )}
             </div>
           </div>
 
