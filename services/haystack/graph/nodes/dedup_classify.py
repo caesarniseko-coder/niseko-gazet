@@ -56,6 +56,7 @@ async def dedup_classify_node(state: PipelineState) -> dict:
                 title=article["title"], body=article["body"],
                 language=article.get("language", "en"),
                 source_url=article["source_url"],
+                source_type=article.get("source_type", ""),
             )
             if cross_lang and cross_lang.get("is_duplicate"):
                 logger.info("classify.cross_lang_duplicate", title=article["title"][:60])

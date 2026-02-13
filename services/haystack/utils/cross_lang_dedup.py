@@ -39,27 +39,34 @@ async def check_cross_language_duplicate(
     body: str,
     language: str,
     source_url: str,
+    source_type: str = "",
 ) -> dict | None:
     """Check if a new article duplicates a recent article in a different language.
 
     Only checks the last 24h of relevant crawl history. Uses LLM comparison
-    for articles that might overlap.
+    for articles that might overlap. Skips social media posts since they
+    rarely have cross-language duplicates.
 
     Args:
         title: Article title
         body: Article body text
         language: Language code ("en" or "ja")
         source_url: Source URL (to avoid self-matching)
+        source_type: Source type (e.g. "social", "rss", "scrape")
 
     Returns:
         Dict with {"is_duplicate": True, "duplicate_of": id, "reasoning": str}
         or None if no cross-language duplicate found.
     """
+    # Skip cross-language dedup for social media — Reddit/Bluesky posts
+    # are almost never cross-language duplicates of news articles
+    if source_type in ("social", "tip"):
+        return None
+
     # Only check opposite-language articles
     other_lang = "ja" if language == "en" else "en"
 
     # Get recent relevant articles in the other language from crawl_history
-    # We use a simple heuristic: check the last 50 articles
     recent = await _request(
         "GET",
         "crawl_history",
@@ -68,7 +75,7 @@ async def check_cross_language_duplicate(
             "was_duplicate": "eq.false",
             "select": "id,raw_data,source_url,field_note_id",
             "order": "fetched_at.desc",
-            "limit": "30",
+            "limit": "20",
         },
     ) or []
 
@@ -92,8 +99,8 @@ async def check_cross_language_duplicate(
     if not candidates:
         return None
 
-    # Only check the top 5 candidates to limit LLM calls
-    for candidate in candidates[:5]:
+    # Only check the top 3 candidates to limit LLM calls
+    for candidate in candidates[:3]:
         raw_data = candidate.get("raw_data", {}) or {}
         candidate_title = raw_data.get("title", "")
         candidate_body = raw_data.get("body", "")
